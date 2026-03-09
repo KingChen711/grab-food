@@ -32,10 +32,17 @@
     "clean": {
       "cache": false
     },
+    "start": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
+    },
     "db:migrate": {
+      "dependsOn": ["build"],
       "cache": false
     },
     "db:seed": {
+      "dependsOn": ["build"],
       "cache": false
     }
   }

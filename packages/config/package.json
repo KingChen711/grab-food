@@ -2,6 +2,7 @@
   "name": "@grab/config",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "description": "Shared configuration for ESLint, Prettier, and TypeScript",
   "exports": {
     "./eslint/base": "./eslint/base.js",
@@ -22,8 +23,9 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unicorn": "^57.0.0",
-    "typescript-eslint": "^8.26.0",
+    "globals": "^17.4.0",
     "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11"
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript-eslint": "^8.26.0"
   }
 }
