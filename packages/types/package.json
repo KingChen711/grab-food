@@ -1,0 +1,23 @@
+{
+  "name": "@grab/types",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Shared TypeScript types and interfaces for the Grab platform",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@grab/config": "workspace:*",
+    "typescript": "^5.8.2",
+    "rimraf": "^6.0.1"
+  }
+}

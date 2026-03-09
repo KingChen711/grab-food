@@ -1,0 +1,10 @@
+{
+  "extends": "@grab/config/typescript/nextjs",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
