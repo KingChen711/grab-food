@@ -36,6 +36,9 @@ const statusConfig: Record<
 
 function OrderStatusBadge({ status, showIcon = true, className }: OrderStatusBadgeProps) {
   const config = statusConfig[status]
+
+  if (!config) return null
+
   const Icon = config.icon
 
   return (

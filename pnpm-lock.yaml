@@ -125,6 +125,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@grab/types':
+        specifier: workspace:*
+        version: link:../types
       '@radix-ui/react-accordion':
         specifier: ^1.2.3
         version: 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
