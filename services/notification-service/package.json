@@ -1,7 +1,7 @@
 {
   "name": "@grab/notification-service",
   "version": "0.0.1",
-  "description": "Notification Service â€” WebSocket gateway, push, email, SMS",
+  "description": "Notification Service - WebSocket gateway, push, email, SMS",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -59,6 +59,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

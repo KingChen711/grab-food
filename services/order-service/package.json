@@ -1,7 +1,7 @@
 {
   "name": "@grab/order-service",
   "version": "0.0.1",
-  "description": "Order Service â€” CQRS, Event Sourcing, Saga Orchestration, Cart",
+  "description": "Order Service - CQRS, Event Sourcing, Saga Orchestration, Cart",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -65,6 +65,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

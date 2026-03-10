@@ -1,7 +1,7 @@
 {
   "name": "@grab/delivery-service",
   "version": "0.0.1",
-  "description": "Delivery Service â€” driver management, real-time tracking, assignment",
+  "description": "Delivery Service - driver management, real-time tracking, assignment",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -61,6 +61,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

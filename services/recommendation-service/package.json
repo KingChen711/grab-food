@@ -1,7 +1,7 @@
 {
   "name": "@grab/recommendation-service",
   "version": "0.0.1",
-  "description": "Recommendation Service â€” collaborative filtering, ML pipeline",
+  "description": "Recommendation Service - collaborative filtering, ML pipeline",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -54,6 +54,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

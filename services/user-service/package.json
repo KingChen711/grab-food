@@ -1,7 +1,7 @@
 {
   "name": "@grab/user-service",
   "version": "0.0.1",
-  "description": "User Service â€” authentication, profiles, addresses",
+  "description": "User Service - authentication, profiles, addresses",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -72,6 +72,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

@@ -1,7 +1,7 @@
 {
   "name": "@grab/search-service",
   "version": "0.0.1",
-  "description": "Search Service â€” Elasticsearch full-text, geo-spatial, autocomplete",
+  "description": "Search Service - Elasticsearch full-text, geo-spatial, autocomplete",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -54,6 +54,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

@@ -1,7 +1,7 @@
 {
   "name": "@grab/analytics-service",
   "version": "0.0.1",
-  "description": "Analytics Service â€” Kafka consumer, ClickHouse OLAP, dashboards",
+  "description": "Analytics Service - Kafka consumer, ClickHouse OLAP, dashboards",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -52,6 +52,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

@@ -1,7 +1,7 @@
 {
   "name": "@grab/payment-service",
   "version": "0.0.1",
-  "description": "Payment Service â€” Stripe integration, wallet, idempotency, invoices",
+  "description": "Payment Service - Stripe integration, wallet, idempotency, invoices",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -59,6 +59,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

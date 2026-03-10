@@ -1,7 +1,7 @@
 {
   "name": "@grab/promotion-service",
   "version": "0.0.1",
-  "description": "Promotion Service â€” coupons, referrals, loyalty, rules engine",
+  "description": "Promotion Service - coupons, referrals, loyalty, rules engine",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -60,6 +60,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

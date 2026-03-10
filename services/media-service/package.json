@@ -1,7 +1,7 @@
 {
   "name": "@grab/media-service",
   "version": "0.0.1",
-  "description": "Media Service â€” image upload, processing, MinIO/S3 storage",
+  "description": "Media Service - image upload, processing, MinIO/S3 storage",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -54,6 +54,11 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.spec.json"
+      }
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
