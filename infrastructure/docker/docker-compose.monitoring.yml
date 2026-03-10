@@ -1,0 +1,150 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Monitoring Stack — Prometheus, Grafana, Jaeger, ELK (Logstash + Kibana)
+# Usage: docker compose -f docker-compose.infra.yml -f docker-compose.monitoring.yml up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: grab-monitoring
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # ─── Prometheus ──────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: grab-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+      - "--web.enable-admin-api"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - grab-net
+    logging: *default-logging
+
+  # ─── Grafana ─────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: grab-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-piechart-panel
+    ports:
+      - "${GRAFANA_PORT:-3500}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - grab-net
+    logging: *default-logging
+
+  # ─── Jaeger (Distributed Tracing) ────────────────────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.65
+    container_name: grab-jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+      SPAN_STORAGE_TYPE: badger
+      BADGER_EPHEMERAL: "false"
+      BADGER_DIRECTORY_VALUE: /badger/data
+      BADGER_DIRECTORY_KEY: /badger/key
+    ports:
+      - "5775:5775/udp"    # Zipkin compact thrift
+      - "6831:6831/udp"    # Jaeger compact thrift
+      - "6832:6832/udp"    # Jaeger binary thrift
+      - "5778:5778"        # Config server
+      - "${JAEGER_UI_PORT:-16686}:16686"  # Jaeger UI
+      - "14268:14268"      # Jaeger collector HTTP
+      - "14250:14250"      # Jaeger collector gRPC
+      - "9411:9411"        # Zipkin
+      - "4317:4317"        # OTLP gRPC
+      - "4318:4318"        # OTLP HTTP
+    volumes:
+      - jaeger_data:/badger
+    networks:
+      - grab-net
+    logging: *default-logging
+
+  # ─── Logstash ────────────────────────────────────────────────────────────────
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.17.0
+    container_name: grab-logstash
+    restart: unless-stopped
+    environment:
+      LS_JAVA_OPTS: "-Xms256m -Xmx256m"
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+      - ../monitoring/elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    networks:
+      - grab-net
+    logging: *default-logging
+
+  # ─── Node Exporter (host metrics for Prometheus) ─────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:v1.9.0
+    container_name: grab-node-exporter
+    restart: unless-stopped
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - grab-net
+    logging: *default-logging
+
+  # ─── cAdvisor (container metrics) ────────────────────────────────────────────
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.2
+    container_name: grab-cadvisor
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    networks:
+      - grab-net
+    logging: *default-logging
+
+volumes:
+  prometheus_data:
+    name: grab_prometheus_data
+  grafana_data:
+    name: grab_grafana_data
+  jaeger_data:
+    name: grab_jaeger_data
+
+networks:
+  grab-net:
+    name: grab-network
+    external: true

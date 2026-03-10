@@ -1,0 +1,426 @@
+#   
+# Full-stack local development â€” all infrastructure + all NestJS services
+# Usage: docker compose -f infrastructure/docker/docker-compose.yml up -d
+#
+# Prerequisites: docker compose -f docker-compose.infra.yml up -d
+# 
+
+name: grab
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-service-base: &service-base
+  restart: unless-stopped
+  networks:
+    - grab-net
+  logging: *default-logging
+
+x-nestjs-healthcheck: &nestjs-healthcheck
+  test: ["CMD-SHELL", "wget -qO- http://localhost:${PORT:-3000}/health || exit 1"]
+  interval: 15s
+  timeout: 5s
+  retries: 5
+  start_period: 30s
+
+# 
+include:
+  - path: ./docker-compose.infra.yml
+
+services:
+  # 
+  api-gateway:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/api-gateway/Dockerfile
+      target: runner
+    image: grab/api-gateway:${TAG:-latest}
+    container_name: grab-api-gateway
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-development}
+      CORS_ORIGINS: http://localhost:3100,http://localhost:3101,http://localhost:3102,http://localhost:3103
+      USER_SERVICE_URL: http://user-service:3001
+      RESTAURANT_SERVICE_URL: http://restaurant-service:3002
+      ORDER_SERVICE_URL: http://order-service:3003
+      DELIVERY_SERVICE_URL: http://delivery-service:3004
+      PAYMENT_SERVICE_URL: http://payment-service:3005
+      NOTIFICATION_SERVICE_URL: http://notification-service:3006
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-service
+      - restaurant-service
+      - order-service
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # 
+  user-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/user-service/Dockerfile
+      target: runner
+    image: grab/user-service:${TAG:-latest}
+    container_name: grab-user-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3001
+      TCP_PORT: 5001
+      NODE_ENV: ${NODE_ENV:-development}
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+    ports:
+      - "3001:3001"
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # 
+  restaurant-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/restaurant-service/Dockerfile
+      target: runner
+    image: grab/restaurant-service:${TAG:-latest}
+    container_name: grab-restaurant-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3002
+      TCP_PORT: 5002
+      NODE_ENV: ${NODE_ENV:-development}
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+    ports:
+      - "3002:3002"
+      - "5002:5002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3002/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # 
+  order-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/order-service/Dockerfile
+      target: runner
+    image: grab/order-service:${TAG:-latest}
+    container_name: grab-order-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3003
+      TCP_PORT: 5003
+      NODE_ENV: ${NODE_ENV:-development}
+      POSTGRES_HOST: postgres
+      MONGODB_URI: mongodb://${MONGO_USER:-grab_user}:${MONGO_PASSWORD:-grab_password}@mongodb:27017/${MONGO_DB:-grab_db}?authSource=admin
+      REDIS_HOST: redis
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-grab_user}:${RABBITMQ_PASS:-grab_password}@rabbitmq:5672/${RABBITMQ_VHOST:-grab}
+      KAFKA_BROKERS: kafka:29092
+    ports:
+      - "3003:3003"
+      - "5003:5003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3003/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # 
+  delivery-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/delivery-service/Dockerfile
+      target: runner
+    image: grab/delivery-service:${TAG:-latest}
+    container_name: grab-delivery-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3004
+      TCP_PORT: 5004
+      NODE_ENV: ${NODE_ENV:-development}
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:29092
+    ports:
+      - "3004:3004"
+      - "5004:5004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3004/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # 
+  payment-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/payment-service/Dockerfile
+      target: runner
+    image: grab/payment-service:${TAG:-latest}
+    container_name: grab-payment-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3005
+      TCP_PORT: 5005
+      NODE_ENV: ${NODE_ENV:-development}
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:29092
+    ports:
+      - "3005:3005"
+      - "5005:5005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3005/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  #  Notification Service 
+  notification-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/notification-service/Dockerfile
+      target: runner
+    image: grab/notification-service:${TAG:-latest}
+    container_name: grab-notification-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3006
+      TCP_PORT: 5006
+      NODE_ENV: ${NODE_ENV:-development}
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:29092
+    ports:
+      - "3006:3006"
+      - "5006:5006"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3006/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # 
+  search-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/search-service/Dockerfile
+      target: runner
+    image: grab/search-service:${TAG:-latest}
+    container_name: grab-search-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3007
+      TCP_PORT: 5007
+      NODE_ENV: ${NODE_ENV:-development}
+      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      KAFKA_BROKERS: kafka:29092
+    ports:
+      - "3007:3007"
+      - "5007:5007"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3007/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # 
+  analytics-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/analytics-service/Dockerfile
+      target: runner
+    image: grab/analytics-service:${TAG:-latest}
+    container_name: grab-analytics-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3008
+      TCP_PORT: 5008
+      NODE_ENV: ${NODE_ENV:-development}
+      CLICKHOUSE_HOST: clickhouse
+      KAFKA_BROKERS: kafka:29092
+    ports:
+      - "3008:3008"
+      - "5008:5008"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3008/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # 
+  promotion-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/promotion-service/Dockerfile
+      target: runner
+    image: grab/promotion-service:${TAG:-latest}
+    container_name: grab-promotion-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3009
+      TCP_PORT: 5009
+      NODE_ENV: ${NODE_ENV:-development}
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+    ports:
+      - "3009:3009"
+      - "5009:5009"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3009/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  #
+  media-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/media-service/Dockerfile
+      target: runner
+    image: grab/media-service:${TAG:-latest}
+    container_name: grab-media-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3010
+      TCP_PORT: 5010
+      NODE_ENV: ${NODE_ENV:-development}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+    ports:
+      - "3010:3010"
+      - "5010:5010"
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3010/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  #  
+  recommendation-service:
+    <<: *service-base
+    build:
+      context: ../..
+      dockerfile: services/recommendation-service/Dockerfile
+      target: runner
+    image: grab/recommendation-service:${TAG:-latest}
+    container_name: grab-recommendation-service
+    env_file:
+      - ../../.env
+    environment:
+      PORT: 3011
+      TCP_PORT: 5011
+      NODE_ENV: ${NODE_ENV:-development}
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:29092
+    ports:
+      - "3011:3011"
+      - "5011:5011"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3011/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+

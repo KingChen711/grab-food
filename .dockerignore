@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+.github
+
+# Node
+node_modules
+**/node_modules
+
+# Build output (will be built inside Docker)
+dist
+**/dist
+build
+**/build
+.next
+**/.next
+
+# Test coverage
+coverage
+**/coverage
+
+# Logs
+*.log
+logs
+
+# Environment files (use Docker env vars instead)
+.env
+.env.local
+.env.*.local
+
+# Turbo
+.turbo
+**/.turbo
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+infrastructure/docker
+Dockerfile
+**/Dockerfile.dev
+
+# Docs
+docs
+*.md
+!packages/*/README.md
+
+# Test files
+**/*.spec.ts
+**/*.e2e-spec.ts
+**/test/
