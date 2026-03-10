@@ -68,4 +68,4 @@ USER nestjs
 EXPOSE 3001 5001
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/main"]
+CMD ["node", "dist/services/user-service/src/main"]

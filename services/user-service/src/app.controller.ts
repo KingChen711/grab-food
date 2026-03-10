@@ -1,8 +1,10 @@
-﻿import { Controller, Get } from '@nestjs/common'
+import { Controller, Get } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
+import type { HealthCheckService } from '@nestjs/terminus'
+import { HealthCheck } from '@nestjs/terminus'
 
-import { AppService } from './app.service'
+import type { AppService } from './app.service'
+import { Public } from './common/decorators/public.decorator'
 
 @ApiTags('health')
 @Controller()
@@ -12,12 +14,14 @@ export class AppController {
     private readonly health: HealthCheckService,
   ) {}
 
+  @Public()
   @Get('health')
   @HealthCheck()
   public check(): Promise<unknown> {
     return this.health.check([])
   }
 
+  @Public()
   @Get()
   public getStatus(): { status: string; service: string } {
     return this.appService.getStatus()

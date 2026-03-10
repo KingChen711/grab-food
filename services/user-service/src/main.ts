@@ -1,15 +1,19 @@
-﻿import { Logger, ValidationPipe } from '@nestjs/common'
-import { NestFactory } from '@nestjs/core'
+import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common'
+import { NestFactory, Reflector } from '@nestjs/core'
 import type { MicroserviceOptions } from '@nestjs/microservices'
 import { Transport } from '@nestjs/microservices'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 import { AppModule } from './app.module'
+import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log', 'debug'],
   })
+
+  // Graceful shutdown hooks (SIGTERM, SIGINT)
+  app.enableShutdownHooks()
 
   // TCP Microservice transport
   app.connectMicroservice<MicroserviceOptions>({
@@ -26,9 +30,13 @@ async function bootstrap(): Promise<void> {
     }),
   )
 
+  // ClassSerializerInterceptor needs Reflector from app context
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
+  app.useGlobalFilters(new HttpExceptionFilter())
+
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Grab user-service')
-    .setDescription('user-service for Grab Food delivery platform')
+    .setTitle('User Service')
+    .setDescription('Authentication, profiles and address management')
     .setVersion('1.0')
     .addBearerAuth()
     .build()
@@ -40,7 +48,7 @@ async function bootstrap(): Promise<void> {
   const port = process.env.PORT ?? 3001
   await app.listen(port)
 
-  Logger.log('User service running on HTTP :3001 / TCP :5001', 'Bootstrap')
+  Logger.log(`User service running on HTTP :${port} / TCP :5001`, 'Bootstrap')
 }
 
 void bootstrap()
