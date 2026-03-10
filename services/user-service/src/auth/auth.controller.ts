@@ -1,5 +1,14 @@
 import type { AuthTokens } from '@grab/types'
-import { Body, Controller, HttpCode, HttpStatus, Ip, Post, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Ip,
+  Post,
+  UseGuards,
+} from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 
@@ -83,8 +92,22 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Logout (revoke refresh token)' })
-  public logout(@CurrentUser() user: User, @Body() dto: Partial<RefreshTokenDto>): Promise<void> {
-    return this.authService.logout(user.id, dto.refreshToken)
+  @ApiOperation({ summary: 'Logout (revoke refresh token and blacklist access token)' })
+  public logout(
+    @CurrentUser() user: User,
+    @Body() dto: Partial<RefreshTokenDto>,
+    @Headers('authorization') authHeader?: string,
+  ): Promise<void> {
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : undefined
+    return this.authService.logout(user.id, dto.refreshToken, accessToken)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout-all')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Logout from all devices (revoke all sessions)' })
+  public logoutAll(@CurrentUser() user: User): Promise<void> {
+    return this.authService.logoutAll(user.id)
   }
 }

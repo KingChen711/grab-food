@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm'
 import type { DataSource, Repository } from 'typeorm'
 
 import { User } from './entities/user.entity'
@@ -25,15 +25,15 @@ export class UsersRepository {
     @InjectRepository(UserProfile) private readonly profileRepo: Repository<UserProfile>,
     @InjectRepository(UserAddress) private readonly addressRepo: Repository<UserAddress>,
     @InjectRepository(UserDevice) private readonly deviceRepo: Repository<UserDevice>,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   public async existsByEmail(email: string): Promise<boolean> {
-    return await this.repo.exists({ where: { email } })
+    return this.repo.exists({ where: { email } })
   }
 
   public async existsByPhone(phone: string): Promise<boolean> {
-    return await this.repo.exists({ where: { phone } })
+    return this.repo.exists({ where: { phone } })
   }
 
   /**

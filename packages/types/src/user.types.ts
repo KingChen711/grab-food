@@ -58,6 +58,7 @@ export interface JwtPayload {
   email?: string
   phone?: string
   role: UserRole
+  jti?: string
   iat: number
   exp: number
 }

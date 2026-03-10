@@ -17,10 +17,9 @@ import type { UsersService } from '../users/users.service'
 import type { LoginWithEmailDto, LoginWithPhoneDto } from './dto/login.dto'
 import type { RegisterWithEmailDto, RegisterWithPhoneDto } from './dto/register.dto'
 import { RefreshToken } from './entities/refresh-token.entity'
+import type { TokenBlacklistService } from './token-blacklist/token-blacklist.service'
 
 const BCRYPT_ROUNDS = 12
-const REFRESH_TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days default
-
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name)
@@ -29,6 +28,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
   ) {}
@@ -91,14 +91,15 @@ export class AuthService {
       throw new ForbiddenException('Account suspended. Contact support.')
     }
 
-    const extendedExpiry = dto.rememberMe ? 30 * 24 * 60 * 60 * 1000 : undefined
+    const refreshExpiresInOverride = dto.rememberMe ? '30d' : undefined
+
     return this.issueTokenPair(
       user.id,
       user.email ?? undefined,
       user.phone ?? undefined,
       user.role,
       ipAddress,
-      extendedExpiry,
+      refreshExpiresInOverride,
     )
   }
 
@@ -173,7 +174,28 @@ export class AuthService {
     return tokens
   }
 
-  public async logout(userId: string, rawRefreshToken?: string): Promise<void> {
+  public async logout(
+    userId: string,
+    rawRefreshToken?: string,
+    rawAccessToken?: string,
+  ): Promise<void> {
+    // 1. Blacklist access token
+    if (rawAccessToken) {
+      try {
+        const payload = this.jwtService.decode<{ jti?: string; exp: number }>(rawAccessToken)
+        if (payload?.jti) {
+          const currentTime = Math.floor(Date.now() / 1000)
+          const ttlSeconds = payload.exp - currentTime
+          if (ttlSeconds > 0) {
+            await this.tokenBlacklistService.blacklist(payload.jti, ttlSeconds)
+          }
+        }
+      } catch (err) {
+        this.logger.warn(`Failed to decode/blacklist access token: ${(err as Error).message}`)
+      }
+    }
+
+    // 2. Revoke refresh token
     if (rawRefreshToken) {
       try {
         const payload = await this.jwtService.verifyAsync<{ jti: string }>(rawRefreshToken, {
@@ -185,7 +207,22 @@ export class AuthService {
       }
       return
     }
-    // Revoke all tokens for the user (logout from all devices)
+
+    // 3. If no specific refresh token provided, revoke all tokens for this user
+    await this.refreshTokenRepo.update(
+      { user: { id: userId }, revokedAt: undefined as unknown as Date },
+      { revokedAt: new Date() },
+    )
+  }
+
+  public async logoutAll(userId: string): Promise<void> {
+    const accessExpiresIn = this.configService.get<string>('jwt.accessExpiresIn') ?? '15m'
+    const accessExpiresInSeconds = this.parseExpiry(accessExpiresIn)
+
+    // Revoke all tokens issued before now
+    await this.tokenBlacklistService.blacklistAllForUser(userId, accessExpiresInSeconds)
+
+    // Revoke all refresh tokens
     await this.refreshTokenRepo.update(
       { user: { id: userId }, revokedAt: undefined as unknown as Date },
       { revokedAt: new Date() },
@@ -200,17 +237,22 @@ export class AuthService {
     phone: string | undefined,
     role: string,
     ipAddress?: string,
-    refreshExpiryMs?: number,
+    refreshExpiresInOverride?: string,
     existingFamilyId?: string,
   ): Promise<AuthTokens> {
     const accessSecret = this.configService.get<string>('jwt.accessSecret')
     const refreshSecret = this.configService.get<string>('jwt.refreshSecret')
     const accessExpiresIn = this.configService.get<string>('jwt.accessExpiresIn') ?? '15m'
-    const refreshExpiresIn = this.configService.get<string>('jwt.refreshExpiresIn') ?? '7d'
+    const configuredRefreshExpiresIn =
+      this.configService.get<string>('jwt.refreshExpiresIn') ?? '7d'
+
+    type ExpiresIn = `${number}${'s' | 'm' | 'h' | 'd'}`
+    const refreshExpiresIn = (refreshExpiresInOverride ?? configuredRefreshExpiresIn) as ExpiresIn
 
     // Create a new refresh token DB record (its ID becomes the JWT `jti`)
     const familyId = existingFamilyId ?? randomUUID()
-    const expiresAt = new Date(Date.now() + (refreshExpiryMs ?? REFRESH_TOKEN_EXPIRY_MS))
+    const refreshExpiresInSeconds = this.parseExpiry(refreshExpiresIn)
+    const expiresAt = new Date(Date.now() + refreshExpiresInSeconds * 1000)
 
     const refreshTokenRecord = this.refreshTokenRepo.create({
       user: { id: userId },
@@ -221,18 +263,20 @@ export class AuthService {
       revokedAt: null,
     })
     const savedRecord = await this.refreshTokenRepo.save(refreshTokenRecord)
+    const accessJti = randomUUID()
 
     const basePayload = { sub: userId, email, phone, role }
-
-    type ExpiresIn = `${number}${'s' | 'm' | 'h' | 'd'}`
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(basePayload, {
-        secret: accessSecret,
-        expiresIn: accessExpiresIn as ExpiresIn,
-      }),
+      this.jwtService.signAsync(
+        { ...basePayload, jti: accessJti },
+        {
+          secret: accessSecret,
+          expiresIn: accessExpiresIn as ExpiresIn,
+        },
+      ),
       this.jwtService.signAsync(
         { ...basePayload, jti: savedRecord.id, familyId },
-        { secret: refreshSecret, expiresIn: refreshExpiresIn as ExpiresIn },
+        { secret: refreshSecret, expiresIn: refreshExpiresIn },
       ),
     ])
 

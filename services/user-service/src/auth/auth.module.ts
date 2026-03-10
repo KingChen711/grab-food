@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { RefreshToken } from './entities/refresh-token.entity'
 import { JwtStrategy } from './strategies/jwt.strategy'
+import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module'
 
 @Module({
   imports: [
@@ -26,9 +27,10 @@ import { JwtStrategy } from './strategies/jwt.strategy'
     }),
     TypeOrmModule.forFeature([RefreshToken]),
     UsersModule,
+    TokenBlacklistModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  exports: [AuthService, JwtModule, TokenBlacklistModule],
 })
 export class AuthModule {}
