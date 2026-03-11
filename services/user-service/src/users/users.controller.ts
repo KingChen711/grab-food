@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   Param,
   Patch,
   Post,
@@ -20,14 +21,14 @@ import type { UpdateProfileDto } from './dto/update-profile.dto'
 import type { User } from './entities/user.entity'
 import type { UserAddress } from './entities/user-address.entity'
 import type { UserProfile } from './entities/user-profile.entity'
-import type { UsersService } from './users.service'
+import { UsersService } from './users.service'
 
 @ApiTags('users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(@Inject(UsersService) private readonly usersService: UsersService) {}
 
   // ─── Profile Endpoints ────────────────────────────────────
 

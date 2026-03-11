@@ -1,5 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { OAuth2Client } from 'google-auth-library'
 
 export interface GoogleProfile {
@@ -12,7 +12,7 @@ export interface GoogleProfile {
 export class GoogleAuthService {
   private readonly client: OAuth2Client
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(@Inject(ConfigService) private readonly configService: ConfigService) {
     const clientId = this.configService.get<string>('google.clientId')
     this.client = new OAuth2Client(clientId)
   }

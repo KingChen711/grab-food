@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
-import type { EventEmitter2 } from '@nestjs/event-emitter'
+import { Inject, Injectable, Logger } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 
 import { NOTIFICATION_EVENTS, SendOtpEmailEvent } from '../events/notification.events'
-import type { TokenBlacklistService } from '../token-blacklist/token-blacklist.service'
+import { TokenBlacklistService } from '../token-blacklist/token-blacklist.service'
 
 export const OTP_TTL_SECONDS = 10 * 60 // 10 minutes
 
@@ -11,8 +11,8 @@ export class OtpService {
   private readonly logger = new Logger(OtpService.name)
 
   constructor(
-    private readonly tokenBlacklistService: TokenBlacklistService,
-    private readonly eventEmitter: EventEmitter2,
+    @Inject(TokenBlacklistService) private readonly tokenBlacklistService: TokenBlacklistService,
+    @Inject(EventEmitter2) private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**

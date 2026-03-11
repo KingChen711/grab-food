@@ -1,19 +1,19 @@
 import type { JwtPayload } from '@grab/types'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
 import type { User } from '../../users/entities/user.entity'
-import type { UsersService } from '../../users/users.service'
-import type { TokenBlacklistService } from '../token-blacklist/token-blacklist.service'
+import { UsersService } from '../../users/users.service'
+import { TokenBlacklistService } from '../token-blacklist/token-blacklist.service'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    configService: ConfigService,
-    private readonly usersService: UsersService,
-    private readonly tokenBlacklistService: TokenBlacklistService,
+    @Inject(ConfigService) configService: ConfigService,
+    @Inject(UsersService) private readonly usersService: UsersService,
+    @Inject(TokenBlacklistService) private readonly tokenBlacklistService: TokenBlacklistService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

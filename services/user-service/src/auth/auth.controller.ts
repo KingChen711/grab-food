@@ -5,6 +5,7 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Inject,
   Ip,
   Post,
   UseGuards,
@@ -15,7 +16,7 @@ import { Throttle } from '@nestjs/throttler'
 import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { Public } from '../common/decorators/public.decorator'
 import type { User } from '../users/entities/user.entity'
-import type { AuthService } from './auth.service'
+import { AuthService } from './auth.service'
 import type { ForgotPasswordDto, GoogleVerifyDto, ResetPasswordDto } from './dto/google-verify.dto'
 import type { LoginWithEmailDto, LoginWithPhoneDto } from './dto/login.dto'
 import type { RefreshTokenDto } from './dto/refresh-token.dto'
@@ -25,7 +26,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard'
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
   @Public()
   @Post('register/email')

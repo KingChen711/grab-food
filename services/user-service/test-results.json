@@ -1,0 +1,95 @@
+{
+  "numFailedTestSuites": 1,
+  "numFailedTests": 3,
+  "numPassedTestSuites": 0,
+  "numPassedTests": 0,
+  "numPendingTestSuites": 0,
+  "numPendingTests": 0,
+  "numRuntimeErrorTestSuites": 0,
+  "numTodoTests": 0,
+  "numTotalTestSuites": 1,
+  "numTotalTests": 3,
+  "openHandles": [],
+  "snapshot": {
+    "added": 0,
+    "didUpdate": false,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0
+  },
+  "startTime": 1773203606502,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["Auth & Users (e2e)"],
+          "duration": 75,
+          "failureDetails": [
+            { "matcherResult": { "actual": 500, "expected": 201, "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 201\nReceived: 500", "name": "toBe", "pass": false } }
+          ],
+          "failureMessages": [
+            "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 201\nReceived: 500\n    at Object.<anonymous> (C:\\Users\\Kingc\\OneDrive\\Desktop\\grab\\services\\user-service\\test\\auth.e2e-spec.ts:36:24)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)"
+          ],
+          "fullName": "Auth & Users (e2e) /auth/register/email (POST)",
+          "invocations": 1,
+          "location": { "column": 3, "line": 30 },
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "/auth/register/email (POST)"
+        },
+        {
+          "ancestorTitles": ["Auth & Users (e2e)"],
+          "duration": 12,
+          "failureDetails": [
+            { "matcherResult": { "actual": 500, "expected": 200, "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500", "name": "toBe", "pass": false } }
+          ],
+          "failureMessages": [
+            "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500\n    at Object.<anonymous> (C:\\Users\\Kingc\\OneDrive\\Desktop\\grab\\services\\user-service\\test\\auth.e2e-spec.ts:48:24)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)"
+          ],
+          "fullName": "Auth & Users (e2e) /auth/login/email (POST)",
+          "invocations": 1,
+          "location": { "column": 3, "line": 42 },
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "/auth/login/email (POST)"
+        },
+        {
+          "ancestorTitles": ["Auth & Users (e2e)"],
+          "duration": 15,
+          "failureDetails": [
+            { "matcherResult": { "actual": 500, "expected": 200, "message": "expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500", "name": "toBe", "pass": false } }
+          ],
+          "failureMessages": [
+            "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 500\n    at Object.<anonymous> (C:\\Users\\Kingc\\OneDrive\\Desktop\\grab\\services\\user-service\\test\\auth.e2e-spec.ts:59:24)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)"
+          ],
+          "fullName": "Auth & Users (e2e) /users/me (GET)",
+          "invocations": 1,
+          "location": { "column": 3, "line": 53 },
+          "numPassingAsserts": 0,
+          "retryReasons": [],
+          "status": "failed",
+          "title": "/users/me (GET)"
+        }
+      ],
+      "endTime": 1773203611912,
+      "message": "  ● Auth & Users (e2e) › /auth/register/email (POST)\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 201\n    Received: 500\n\n    \u001b[0m \u001b[90m 34 |\u001b[39m     \n     \u001b[90m 35 |\u001b[39m     \u001b[36mif\u001b[39m (res\u001b[33m.\u001b[39mstatus \u001b[33m!==\u001b[39m \u001b[35m201\u001b[39m) console\u001b[33m.\u001b[39merror(\u001b[32m'Register Error:'\u001b[39m\u001b[33m,\u001b[39m res\u001b[33m.\u001b[39mbody)\n    \u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 36 |\u001b[39m     expect(res\u001b[33m.\u001b[39mstatus)\u001b[33m.\u001b[39mtoBe(\u001b[35m201\u001b[39m)\n     \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n     \u001b[90m 37 |\u001b[39m     expect(res\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39maccessToken)\u001b[33m.\u001b[39mtoBeDefined()\n     \u001b[90m 38 |\u001b[39m     expect(res\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39mrefreshToken)\u001b[33m.\u001b[39mtoBeDefined()\n     \u001b[90m 39 |\u001b[39m     accessToken \u001b[33m=\u001b[39m res\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39maccessToken\u001b[0m\n\n      at Object.<anonymous> (auth.e2e-spec.ts:36:24)\n\n  ● Auth & Users (e2e) › /auth/login/email (POST)\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 200\n    Received: 500\n\n    \u001b[0m \u001b[90m 46 |\u001b[39m       \n     \u001b[90m 47 |\u001b[39m     \u001b[36mif\u001b[39m (res\u001b[33m.\u001b[39mstatus \u001b[33m!==\u001b[39m \u001b[35m200\u001b[39m) console\u001b[33m.\u001b[39merror(\u001b[32m'Login Error:'\u001b[39m\u001b[33m,\u001b[39m res\u001b[33m.\u001b[39mbody)\n    \u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 48 |\u001b[39m     expect(res\u001b[33m.\u001b[39mstatus)\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\n     \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n     \u001b[90m 49 |\u001b[39m     expect(res\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39maccessToken)\u001b[33m.\u001b[39mtoBeDefined()\n     \u001b[90m 50 |\u001b[39m     expect(res\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39mrefreshToken)\u001b[33m.\u001b[39mtoBeDefined()\n     \u001b[90m 51 |\u001b[39m   })\u001b[0m\n\n      at Object.<anonymous> (auth.e2e-spec.ts:48:24)\n\n  ● Auth & Users (e2e) › /users/me (GET)\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: 200\n    Received: 500\n\n    \u001b[0m \u001b[90m 57 |\u001b[39m       \n     \u001b[90m 58 |\u001b[39m     \u001b[36mif\u001b[39m (res\u001b[33m.\u001b[39mstatus \u001b[33m!==\u001b[39m \u001b[35m200\u001b[39m) console\u001b[33m.\u001b[39merror(\u001b[32m'Get User Error:'\u001b[39m\u001b[33m,\u001b[39m res\u001b[33m.\u001b[39mbody)\n    \u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 59 |\u001b[39m     expect(res\u001b[33m.\u001b[39mstatus)\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\n     \u001b[90m    |\u001b[39m                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n     \u001b[90m 60 |\u001b[39m     expect(res\u001b[33m.\u001b[39mbody\u001b[33m.\u001b[39mfullName)\u001b[33m.\u001b[39mtoEqual(testUser\u001b[33m.\u001b[39mfullName)\n     \u001b[90m 61 |\u001b[39m   })\n     \u001b[90m 62 |\u001b[39m })\u001b[0m\n\n      at Object.<anonymous> (auth.e2e-spec.ts:59:24)\n",
+      "name": "C:\\Users\\Kingc\\OneDrive\\Desktop\\grab\\services\\user-service\\test\\auth.e2e-spec.ts",
+      "startTime": 1773203606861,
+      "status": "failed",
+      "summary": ""
+    }
+  ],
+  "wasInterrupted": false
+}
