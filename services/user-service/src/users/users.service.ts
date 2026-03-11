@@ -1,12 +1,17 @@
 import type { UserRole } from '@grab/types'
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
-import type { EventEmitter2 } from '@nestjs/event-emitter'
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 
 import { USER_EVENTS, UserRegisteredEvent, UserVerifiedEvent } from '../auth/events/user.events'
+import type { CreateAddressDto } from './dto/create-address.dto'
+import type { UpdateAddressDto } from './dto/update-address.dto'
+import type { UpdateProfileDto } from './dto/update-profile.dto'
 import type { User } from './entities/user.entity'
 import type { UserAddress } from './entities/user-address.entity'
 import type { UserDevice } from './entities/user-device.entity'
-import type { UsersRepository } from './users.repository'
+import type { UserProfile } from './entities/user-profile.entity'
+import { GeocodingService } from './geocoding.service'
+import { UsersRepository } from './users.repository'
 
 export interface CreateUserParams {
   email?: string
@@ -20,8 +25,9 @@ export interface CreateUserParams {
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly usersRepo: UsersRepository,
-    private readonly eventEmitter: EventEmitter2,
+    @Inject(UsersRepository) private readonly usersRepo: UsersRepository,
+    @Inject(EventEmitter2) private readonly eventEmitter: EventEmitter2,
+    @Inject(GeocodingService) private readonly geocoding: GeocodingService,
   ) {}
 
   public async create(params: CreateUserParams): Promise<User> {
@@ -95,6 +101,73 @@ export class UsersService {
 
   public async getAddresses(userId: string): Promise<UserAddress[]> {
     return this.usersRepo.findAddressesByUser(userId)
+  }
+
+  public async addAddress(userId: string, dto: CreateAddressDto): Promise<UserAddress> {
+    let { lat, lng } = dto
+    if (!lat || !lng) {
+      const coords = await this.geocoding.getCoordinatesFromAddress(dto.fullAddress)
+      lat = coords.lat
+      lng = coords.lng
+    }
+
+    if (dto.isDefault) {
+      await this.usersRepo.unsetDefaultAddresses(userId)
+    } else {
+      const existing = await this.getAddresses(userId)
+      if (existing.length === 0) {
+        dto.isDefault = true
+      }
+    }
+
+    const address = await this.usersRepo.addAddress(userId, { ...dto, lat, lng })
+    this.eventEmitter.emit(USER_EVENTS.ADDRESS_ADDED, { userId, addressId: address.id })
+    return address
+  }
+
+  public async updateAddress(
+    userId: string,
+    addressId: string,
+    dto: UpdateAddressDto,
+  ): Promise<void> {
+    const address = await this.usersRepo.findAddressById(addressId, userId)
+    if (!address) throw new NotFoundException('Address not found')
+
+    let { lat, lng } = dto
+    if (dto.fullAddress && (!lat || !lng)) {
+      const coords = await this.geocoding.getCoordinatesFromAddress(dto.fullAddress)
+      lat = coords.lat
+      lng = coords.lng
+    }
+
+    if (dto.isDefault && !address.isDefault) {
+      await this.usersRepo.unsetDefaultAddresses(userId)
+    }
+
+    await this.usersRepo.updateAddress(addressId, { ...dto, lat, lng })
+  }
+
+  public async deleteAddress(userId: string, addressId: string): Promise<void> {
+    const address = await this.usersRepo.findAddressById(addressId, userId)
+    if (!address) throw new NotFoundException('Address not found')
+    await this.usersRepo.deleteAddress(addressId)
+  }
+
+  public async setDefaultAddress(userId: string, addressId: string): Promise<void> {
+    const address = await this.usersRepo.findAddressById(addressId, userId)
+    if (!address) throw new NotFoundException('Address not found')
+    await this.usersRepo.unsetDefaultAddresses(userId)
+    await this.usersRepo.setDefaultAddress(addressId)
+  }
+
+  public async getProfile(userId: string): Promise<UserProfile> {
+    const user = await this.findById(userId)
+    return user.profile
+  }
+
+  public async updateProfile(userId: string, dto: UpdateProfileDto): Promise<void> {
+    await this.usersRepo.updateProfile(userId, dto)
+    this.eventEmitter.emit(USER_EVENTS.PROFILE_UPDATED, { userId, dto })
   }
 
   public async getDevices(userId: string): Promise<UserDevice[]> {

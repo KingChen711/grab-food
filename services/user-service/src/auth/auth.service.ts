@@ -2,24 +2,25 @@ import type { AuthTokens, JwtPayload } from '@grab/types'
 import {
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
-import type { JwtService } from '@nestjs/jwt'
+import { ConfigService } from '@nestjs/config'
+import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import * as bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import type { Repository } from 'typeorm'
 
-import type { UsersService } from '../users/users.service'
+import { UsersService } from '../users/users.service'
 import type { LoginWithEmailDto, LoginWithPhoneDto } from './dto/login.dto'
 import type { RegisterWithEmailDto, RegisterWithPhoneDto } from './dto/register.dto'
 import { RefreshToken } from './entities/refresh-token.entity'
-import type { GoogleAuthService } from './google/google-auth.service'
-import type { OtpService } from './otp/otp.service'
-import type { TokenBlacklistService } from './token-blacklist/token-blacklist.service'
+import { GoogleAuthService } from './google/google-auth.service'
+import { OtpService } from './otp/otp.service'
+import { TokenBlacklistService } from './token-blacklist/token-blacklist.service'
 
 const BCRYPT_ROUNDS = 12
 @Injectable()
@@ -27,14 +28,13 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name)
 
   constructor(
-    private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-    private readonly tokenBlacklistService: TokenBlacklistService,
-    private readonly googleAuthService: GoogleAuthService,
-    private readonly otpService: OtpService,
-    @InjectRepository(RefreshToken)
-    private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @Inject(UsersService) private readonly usersService: UsersService,
+    @Inject(JwtService) private readonly jwtService: JwtService,
+    @Inject(ConfigService) private readonly configService: ConfigService,
+    @InjectRepository(RefreshToken) private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @Inject(TokenBlacklistService) private readonly tokenBlacklistService: TokenBlacklistService,
+    @Inject(GoogleAuthService) private readonly googleAuthService: GoogleAuthService,
+    @Inject(OtpService) private readonly otpService: OtpService,
   ) {}
 
   // ─── Registration ─────────────────────────────────────────────────────────

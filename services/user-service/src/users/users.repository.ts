@@ -120,6 +120,38 @@ export class UsersRepository {
     return this.addressRepo.find({ where: { user: { id: userId } } })
   }
 
+  public async findAddressById(addressId: string, userId: string): Promise<UserAddress | null> {
+    return this.addressRepo.findOne({ where: { id: addressId, user: { id: userId } } })
+  }
+
+  public async addAddress(userId: string, addressData: Partial<UserAddress>): Promise<UserAddress> {
+    const address = this.addressRepo.create({
+      ...addressData,
+      user: { id: userId },
+    })
+    return this.addressRepo.save(address)
+  }
+
+  public async updateAddress(addressId: string, addressData: Partial<UserAddress>): Promise<void> {
+    await this.addressRepo.update(addressId, addressData)
+  }
+
+  public async deleteAddress(addressId: string): Promise<void> {
+    await this.addressRepo.delete(addressId)
+  }
+
+  public async unsetDefaultAddresses(userId: string): Promise<void> {
+    await this.addressRepo.update({ user: { id: userId } }, { isDefault: false })
+  }
+
+  public async setDefaultAddress(addressId: string): Promise<void> {
+    await this.addressRepo.update(addressId, { isDefault: true })
+  }
+
+  public async updateProfile(userId: string, profileData: Partial<UserProfile>): Promise<void> {
+    await this.profileRepo.update({ user: { id: userId } }, profileData)
+  }
+
   public async findDevicesByUser(userId: string): Promise<UserDevice[]> {
     return this.deviceRepo.find({ where: { user: { id: userId } } })
   }

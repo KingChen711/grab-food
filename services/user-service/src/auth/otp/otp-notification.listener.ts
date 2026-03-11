@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 
-import type { SendOtpEmailEvent } from '../events/notification.events';
+import type { SendOtpEmailEvent } from '../events/notification.events'
 import { NOTIFICATION_EVENTS } from '../events/notification.events'
 
 /**

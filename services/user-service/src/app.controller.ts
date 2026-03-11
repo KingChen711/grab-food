@@ -1,17 +1,16 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, Inject } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import type { HealthCheckService } from '@nestjs/terminus';
-import { HealthCheck } from '@nestjs/terminus'
+import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 
-import type { AppService } from './app.service'
+import { AppService } from './app.service'
 import { Public } from './common/decorators/public.decorator'
 
 @ApiTags('health')
 @Controller()
 export class AppController {
   constructor(
-    private readonly appService: AppService,
-    private readonly health: HealthCheckService,
+    @Inject(AppService) private readonly appService: AppService,
+    @Inject(HealthCheckService) private readonly health: HealthCheckService,
   ) {}
 
   @Public()
