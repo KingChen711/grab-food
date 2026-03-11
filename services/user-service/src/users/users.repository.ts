@@ -10,6 +10,7 @@ import { UserProfile } from './entities/user-profile.entity'
 export interface CreateUserData {
   email?: string | null
   phone?: string | null
+  googleId?: string | null
   passwordHash?: string | null
   role: User['role']
   status: User['status']
@@ -52,6 +53,7 @@ export class UsersRepository {
       const user = manager.create(User, {
         email: data.email ?? null,
         phone: data.phone ?? null,
+        googleId: data.googleId ?? null,
         passwordHash: data.passwordHash ?? null,
         role: data.role,
         status: data.status,
@@ -104,6 +106,14 @@ export class UsersRepository {
 
   public async updatePasswordHash(id: string, passwordHash: string): Promise<void> {
     await this.repo.update(id, { passwordHash })
+  }
+
+  public async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.repo.findOne({ where: { googleId } })
+  }
+
+  public async linkGoogleId(userId: string, googleId: string): Promise<void> {
+    await this.repo.update(userId, { googleId })
   }
 
   public async findAddressesByUser(userId: string): Promise<UserAddress[]> {

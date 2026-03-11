@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
 import { databaseConfig } from './config/database.config'
+import { googleConfig } from './config/google.config'
 import { jwtConfig } from './config/jwt.config'
 import { redisConfig } from './config/redis.config'
 import { DatabaseModule } from './database/database.module'
@@ -22,7 +23,7 @@ import { UsersModule } from './users/users.module'
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [databaseConfig, jwtConfig, redisConfig],
+      load: [databaseConfig, jwtConfig, redisConfig, googleConfig],
     }),
     EventEmitterModule.forRoot({ wildcard: false, delimiter: '.', maxListeners: 20 }),
     ThrottlerModule.forRoot([

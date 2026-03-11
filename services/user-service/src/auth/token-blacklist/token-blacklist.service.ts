@@ -1,4 +1,4 @@
-import type { OnModuleDestroy } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import type Redis from 'ioredis'
 
@@ -68,5 +68,19 @@ export class TokenBlacklistService implements OnModuleDestroy {
     const revokeTimestamp = parseInt(revokeTimestampStr, 10)
     // If the token was issued before or at the exact same second the revoke was initiated, it is invalid
     return iat <= revokeTimestamp
+  }
+
+  // ─── Raw Redis helpers (for OtpService & other internal reuse) ────────────
+
+  public async setRaw(key: string, value: string, ttlSeconds: number): Promise<void> {
+    await this.redis.set(key, value, 'EX', ttlSeconds)
+  }
+
+  public async getRaw(key: string): Promise<string | null> {
+    return this.redis.get(key)
+  }
+
+  public async deleteRaw(key: string): Promise<void> {
+    await this.redis.del(key)
   }
 }

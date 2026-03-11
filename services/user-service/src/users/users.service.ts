@@ -11,6 +11,7 @@ import type { UsersRepository } from './users.repository'
 export interface CreateUserParams {
   email?: string
   phone?: string
+  googleId?: string
   passwordHash?: string
   fullName: string
   role?: UserRole
@@ -35,6 +36,7 @@ export class UsersService {
     const user = await this.usersRepo.createWithProfile({
       email: params.email ?? null,
       phone: params.phone ?? null,
+      googleId: params.googleId ?? null,
       passwordHash: params.passwordHash ?? null,
       role: params.role ?? 'customer',
       status: 'pending_verification',
@@ -81,6 +83,14 @@ export class UsersService {
 
   public async updatePassword(id: string, passwordHash: string): Promise<void> {
     await this.usersRepo.updatePasswordHash(id, passwordHash)
+  }
+
+  public async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.usersRepo.findByGoogleId(googleId)
+  }
+
+  public async linkGoogleId(userId: string, googleId: string): Promise<void> {
+    await this.usersRepo.linkGoogleId(userId, googleId)
   }
 
   public async getAddresses(userId: string): Promise<UserAddress[]> {

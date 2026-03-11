@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import type { TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import type { Repository } from 'typeorm'
@@ -8,6 +8,8 @@ import type { Repository } from 'typeorm'
 import { UsersService } from '../users/users.service'
 import { AuthService } from './auth.service'
 import { RefreshToken } from './entities/refresh-token.entity'
+import { GoogleAuthService } from './google/google-auth.service'
+import { OtpService } from './otp/otp.service'
 import { TokenBlacklistService } from './token-blacklist/token-blacklist.service'
 
 describe('AuthService Logout', () => {
@@ -47,6 +49,19 @@ describe('AuthService Logout', () => {
           useValue: {
             blacklist: jest.fn(),
             blacklistAllForUser: jest.fn(),
+          },
+        },
+        {
+          provide: GoogleAuthService,
+          useValue: {
+            verifyIdToken: jest.fn(),
+          },
+        },
+        {
+          provide: OtpService,
+          useValue: {
+            generateAndStoreOtp: jest.fn(),
+            verifyOtp: jest.fn(),
           },
         },
         {

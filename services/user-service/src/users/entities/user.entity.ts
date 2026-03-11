@@ -28,6 +28,9 @@ export class User {
   @Column({ unique: true, nullable: true, type: 'varchar' })
   public phone: string | null
 
+  @Column({ name: 'google_id', unique: true, nullable: true, type: 'varchar' })
+  public googleId: string | null
+
   @Exclude()
   @Column({ name: 'password_hash', nullable: true, type: 'varchar', select: false })
   public passwordHash: string | null

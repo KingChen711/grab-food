@@ -8,6 +8,8 @@ import { UsersModule } from '../users/users.module'
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { RefreshToken } from './entities/refresh-token.entity'
+import { GoogleAuthService } from './google/google-auth.service'
+import { OtpModule } from './otp/otp.module'
 import { JwtStrategy } from './strategies/jwt.strategy'
 import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module'
 
@@ -28,9 +30,10 @@ import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module'
     TypeOrmModule.forFeature([RefreshToken]),
     UsersModule,
     TokenBlacklistModule,
+    OtpModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, GoogleAuthService],
   exports: [AuthService, JwtModule, TokenBlacklistModule],
 })
 export class AuthModule {}

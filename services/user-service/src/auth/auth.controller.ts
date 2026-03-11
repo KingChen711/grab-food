@@ -16,6 +16,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { Public } from '../common/decorators/public.decorator'
 import type { User } from '../users/entities/user.entity'
 import type { AuthService } from './auth.service'
+import type { ForgotPasswordDto, GoogleVerifyDto, ResetPasswordDto } from './dto/google-verify.dto'
 import type { LoginWithEmailDto, LoginWithPhoneDto } from './dto/login.dto'
 import type { RefreshTokenDto } from './dto/refresh-token.dto'
 import type { RegisterWithEmailDto, RegisterWithPhoneDto } from './dto/register.dto'
@@ -109,5 +110,44 @@ export class AuthController {
   @ApiOperation({ summary: 'Logout from all devices (revoke all sessions)' })
   public logoutAll(@CurrentUser() user: User): Promise<void> {
     return this.authService.logoutAll(user.id)
+  }
+
+  // ─── Google OAuth2 ────────────────────────────────────────
+
+  @Public()
+  @Post('google/verify')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ short: { ttl: 60_000, limit: 10 } })
+  @ApiOperation({ summary: 'Verify Google ID Token and return system JWT tokens' })
+  @ApiResponse({ status: 200, description: 'Login successful, returns JWT tokens' })
+  @ApiResponse({ status: 401, description: 'Invalid Google token' })
+  public loginWithGoogle(@Body() dto: GoogleVerifyDto, @Ip() ip: string): Promise<AuthTokens> {
+    return this.authService.loginWithGoogle(dto.idToken, ip)
+  }
+
+  // ─── Password Reset ───────────────────────────────────────
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Throttle({ short: { ttl: 60_000, limit: 5 } })
+  @ApiOperation({ summary: 'Request a password reset OTP via email' })
+  @ApiResponse({
+    status: 204,
+    description: 'OTP sent if email exists (always 204 to prevent enumeration)',
+  })
+  public forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
+    return this.authService.forgotPassword(dto.email)
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Throttle({ short: { ttl: 60_000, limit: 5 } })
+  @ApiOperation({ summary: 'Reset password using OTP received via email' })
+  @ApiResponse({ status: 204, description: 'Password reset successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired OTP' })
+  public resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
+    return this.authService.resetPassword(dto.email, dto.otp, dto.newPassword)
   }
 }

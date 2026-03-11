@@ -17,6 +17,8 @@ import type { UsersService } from '../users/users.service'
 import type { LoginWithEmailDto, LoginWithPhoneDto } from './dto/login.dto'
 import type { RegisterWithEmailDto, RegisterWithPhoneDto } from './dto/register.dto'
 import { RefreshToken } from './entities/refresh-token.entity'
+import type { GoogleAuthService } from './google/google-auth.service'
+import type { OtpService } from './otp/otp.service'
 import type { TokenBlacklistService } from './token-blacklist/token-blacklist.service'
 
 const BCRYPT_ROUNDS = 12
@@ -29,6 +31,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly tokenBlacklistService: TokenBlacklistService,
+    private readonly googleAuthService: GoogleAuthService,
+    private readonly otpService: OtpService,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
   ) {}
@@ -172,6 +176,82 @@ export class AuthService {
     await this.refreshTokenRepo.update(storedToken.id, { revokedAt: new Date() })
 
     return tokens
+  }
+
+  // ─── Google OAuth2 Login ─────────────────────────────────────────────
+
+  public async loginWithGoogle(idToken: string, ipAddress?: string): Promise<AuthTokens> {
+    const profile = await this.googleAuthService.verifyIdToken(idToken)
+
+    // 1. Try to find an existing user by googleId
+    let user = await this.usersService.findByGoogleId(profile.googleId)
+
+    if (!user) {
+      // 2. Try to link to an existing account by email
+      const existingByEmail = profile.email
+        ? await this.usersService.findByEmail(profile.email)
+        : undefined
+
+      if (existingByEmail) {
+        await this.usersService.linkGoogleId(existingByEmail.id, profile.googleId)
+        user = await this.usersService.findById(existingByEmail.id)
+      }
+    }
+
+    if (!user) {
+      // 3. Create a brand-new user from Google profile
+      if (!profile.email) {
+        throw new UnauthorizedException('Google account must have an email')
+      }
+      user = await this.usersService.create({
+        email: profile.email,
+        fullName: profile.name ?? profile.email,
+        googleId: profile.googleId,
+        role: 'customer',
+      })
+      // Mark email as verified since Google already verified it
+      await this.usersService.markEmailVerified(user.id)
+      // Re-fetch the updated user
+      user = await this.usersService.findById(user.id)
+    }
+
+    if (user.status === 'suspended') {
+      throw new ForbiddenException('Account suspended. Contact support.')
+    }
+
+    this.logger.log(`User logged in via Google: ${user.id}`)
+    return this.issueTokenPair(user.id, user.email ?? undefined, undefined, user.role, ipAddress)
+  }
+
+  // ─── Password Reset ────────────────────────────────────────────────
+
+  public async forgotPassword(email: string): Promise<void> {
+    // Always return success to avoid user enumeration attacks
+    const user = await this.usersService.findByEmail(email)
+    if (!user) {
+      this.logger.warn(`Forgot password called for non-existent email: ${email}`)
+      return
+    }
+    await this.otpService.generateAndStoreOtp(email, 'RESET_PASSWORD')
+  }
+
+  public async resetPassword(email: string, otp: string, newPassword: string): Promise<void> {
+    const isValid = await this.otpService.verifyOtp(email, otp)
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid or expired OTP')
+    }
+
+    const user = await this.usersService.findByEmail(email)
+    if (!user) {
+      throw new UnauthorizedException('User not found')
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS)
+    await this.usersService.updatePassword(user.id, passwordHash)
+
+    // Invalidate all existing sessions after password reset for security
+    await this.logoutAll(user.id)
+    this.logger.log(`Password reset successfully for user: ${user.id}`)
   }
 
   public async logout(
