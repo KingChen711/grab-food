@@ -5,10 +5,13 @@ import { Button, Input } from '@grab/ui'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
+import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useCreateAddress, useUpdateAddress } from '@/hooks/use-addresses-query'
 import { type CreateAddressInput, createAddressSchema } from '@/lib/validators/profile.schemas'
+
+import { LocationSearchInput, type PlaceResult } from './location-search-input'
 
 interface AddressFormProps {
   open: boolean
@@ -41,6 +44,19 @@ export function AddressForm({ open, onClose, address }: AddressFormProps) {
     },
   })
 
+  const handlePlaceSelect = useCallback(
+    (place: PlaceResult) => {
+      form.setValue('fullAddress', place.fullAddress, { shouldValidate: true })
+      form.setValue('street', place.street ?? '')
+      form.setValue('district', place.district ?? '')
+      form.setValue('city', place.city, { shouldValidate: true })
+      form.setValue('country', place.country)
+      form.setValue('lat', place.lat)
+      form.setValue('lng', place.lng)
+    },
+    [form],
+  )
+
   const onSubmit = (data: CreateAddressInput) => {
     if (isEditing && address) {
       updateAddress.mutate({ id: address.id, data }, { onSuccess: onClose })
@@ -71,6 +87,19 @@ export function AddressForm({ open, onClose, address }: AddressFormProps) {
           </div>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Search address *</label>
+              <LocationSearchInput
+                defaultValue={address?.fullAddress}
+                onSelect={handlePlaceSelect}
+                error={!!form.formState.errors.fullAddress || !!form.formState.errors.lat}
+              />
+              <FieldError message={form.formState.errors.fullAddress?.message} />
+              {form.formState.errors.lat && (
+                <FieldError message="Please select an address from the suggestions" />
+              )}
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Label (optional)</label>
@@ -82,34 +111,8 @@ export function AddressForm({ open, onClose, address }: AddressFormProps) {
                 <FieldError message={form.formState.errors.label?.message} />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium">Country</label>
-                <Input error={!!form.formState.errors.country} {...form.register('country')} />
-                <FieldError message={form.formState.errors.country?.message} />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Full address *</label>
-              <Input
-                placeholder="Full street address"
-                error={!!form.formState.errors.fullAddress}
-                {...form.register('fullAddress')}
-              />
-              <FieldError message={form.formState.errors.fullAddress?.message} />
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">District</label>
-                <Input placeholder="District" {...form.register('district')} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">City *</label>
-                <Input
-                  placeholder="City"
-                  error={!!form.formState.errors.city}
-                  {...form.register('city')}
-                />
+                <label className="text-sm font-medium">City</label>
+                <Input error={!!form.formState.errors.city} {...form.register('city')} />
                 <FieldError message={form.formState.errors.city?.message} />
               </div>
             </div>

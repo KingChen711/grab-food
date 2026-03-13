@@ -33,6 +33,9 @@ async function proxy(req: NextRequest) {
     const isNullBody = res.status === 204 || res.status === 205 || res.status === 304
     const data = isNullBody ? null : await res.text()
 
+    console.log(`[proxy] ${req.method} ${url} → ${res.status}`)
+    if (!res.ok) console.error(`[proxy] error body:`, data)
+
     return new NextResponse(data, {
       status: res.status,
       statusText: res.statusText,
@@ -40,7 +43,8 @@ async function proxy(req: NextRequest) {
         'Content-Type': res.headers.get('Content-Type') ?? 'application/json',
       },
     })
-  } catch {
+  } catch (err) {
+    console.error(`[proxy] ${req.method} ${url} failed:`, err)
     return NextResponse.json({ message: 'Backend unavailable' }, { status: 502 })
   }
 }

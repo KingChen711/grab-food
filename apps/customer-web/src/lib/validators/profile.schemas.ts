@@ -14,8 +14,8 @@ export const createAddressSchema = z.object({
   district: z.string().optional(),
   city: z.string().min(1, 'City is required'),
   country: z.string().min(1, 'Country is required'),
-  lat: z.coerce.number().min(-90).max(90).optional(),
-  lng: z.coerce.number().min(-180).max(180).optional(),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
   isDefault: z.boolean().optional(),
 })
 

@@ -15,11 +15,11 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../common/decorators/current-user.decorator'
-import type { CreateAddressDto } from './dto/create-address.dto'
-import type { UpdateAddressDto } from './dto/update-address.dto'
-import type { UpdateProfileDto } from './dto/update-profile.dto'
-import type { User } from './entities/user.entity'
-import type { UserAddress } from './entities/user-address.entity'
+import { CreateAddressDto } from './dto/create-address.dto'
+import { UpdateAddressDto } from './dto/update-address.dto'
+import { UpdateProfileDto } from './dto/update-profile.dto'
+import { User } from './entities/user.entity'
+import { UserAddress } from './entities/user-address.entity'
 import { UsersService } from './users.service'
 
 @ApiTags('users')

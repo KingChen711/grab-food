@@ -122,7 +122,8 @@ async function handler(req: NextRequest): Promise<NextResponse> {
       statusText: res.statusText,
       headers: { 'Content-Type': res.headers.get('Content-Type') ?? 'application/json' },
     })
-  } catch {
+  } catch (err) {
+    console.error(`[auth proxy] ${req.method} ${url} failed:`, err)
     return NextResponse.json({ message: 'Backend unavailable' }, { status: 502 })
   }
 }

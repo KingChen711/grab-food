@@ -49,5 +49,14 @@ export default [
       'no-var': 'error',
     },
   },
+  // NestJS services: disable consistent-type-imports so DTO/entity classes keep
+  // their value imports — `import type` erases reflect-metadata at runtime and
+  // breaks class-validator, Swagger, and NestJS DI.
+  {
+    files: ['services/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'off',
+    },
+  },
   prettier,
 ]
