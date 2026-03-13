@@ -1,5 +1,6 @@
 import type { JwtPayload } from '@grab/types'
 import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 
@@ -28,6 +29,7 @@ export class MenuService {
     private readonly variantRepo: Repository<MenuItemVariant>,
     @InjectRepository(MenuItemAddon)
     private readonly addonRepo: Repository<MenuItemAddon>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // ─── Categories ───────────────────────────────────────────────────────────
@@ -155,6 +157,7 @@ export class MenuService {
     }
 
     this.logger.log(`Menu item created: ${saved.id}`)
+    this.eventEmitter.emit('menu_item.created', { itemId: saved.id, restaurantId })
     return this.itemRepo.findOneOrFail({
       where: { id: saved.id },
       relations: ['variants', 'addons'],
@@ -186,6 +189,8 @@ export class MenuService {
         await this.addonRepo.save(addons.map((a) => this.addonRepo.create({ itemId, ...a })))
       }
     }
+
+    this.eventEmitter.emit('menu_item.updated', { itemId, restaurantId })
   }
 
   public async removeItem(
@@ -196,6 +201,7 @@ export class MenuService {
     await this.assertRestaurantOwner(restaurantId, requester)
     const item = await this.findItem(itemId, restaurantId)
     await this.itemRepo.remove(item)
+    this.eventEmitter.emit('menu_item.deleted', { itemId })
   }
 
   public async getCategory(restaurantId: string, categoryId: string): Promise<MenuCategory> {

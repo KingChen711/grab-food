@@ -15,6 +15,7 @@ import { jwtConfig } from './config/jwt.config'
 import { redisConfig } from './config/redis.config'
 import { DatabaseModule } from './database/database.module'
 import { InventoryModule } from './inventory/inventory.module'
+import { KafkaModule } from './kafka/kafka.module'
 import { MenuModule } from './menu/menu.module'
 import { RestaurantsModule } from './restaurants/restaurants.module'
 import { ReviewsModule } from './reviews/reviews.module'
@@ -39,6 +40,7 @@ import { ReviewsModule } from './reviews/reviews.module'
     MenuModule,
     InventoryModule,
     ReviewsModule,
+    KafkaModule,
   ],
   controllers: [AppController],
   providers: [

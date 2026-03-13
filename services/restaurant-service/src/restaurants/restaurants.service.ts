@@ -167,6 +167,7 @@ export class RestaurantsService {
     }
 
     this.logger.log(`Restaurant updated: ${id}`)
+    this.eventEmitter.emit('restaurant.updated', { restaurantId: id })
   }
 
   public async remove(id: string, requester: JwtPayload): Promise<void> {
@@ -174,6 +175,7 @@ export class RestaurantsService {
     if (requester.role !== 'admin') this.assertOwnership(restaurant, requester)
     await this.restaurantRepo.remove(restaurant)
     this.logger.log(`Restaurant deleted: ${id}`)
+    this.eventEmitter.emit('restaurant.deleted', { restaurantId: id })
   }
 
   // ─── Approval workflow ────────────────────────────────────────────────────
