@@ -12,6 +12,7 @@ import { GoogleAuthService } from './google/google-auth.service'
 import { OtpModule } from './otp/otp.module'
 import { JwtStrategy } from './strategies/jwt.strategy'
 import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module'
+import { TokenCleanupService } from './token-cleanup/token-cleanup.service'
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import { TokenBlacklistModule } from './token-blacklist/token-blacklist.module'
     OtpModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleAuthService],
+  providers: [AuthService, JwtStrategy, GoogleAuthService, TokenCleanupService],
   exports: [AuthService, JwtModule, TokenBlacklistModule],
 })
 export class AuthModule {}
