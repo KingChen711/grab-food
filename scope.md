@@ -1520,6 +1520,10 @@ Mỗi service expose:
 - Delivery zone management (PostGIS polygon)
 - Driver earnings calculation
 - Delivery proof (photo + OTP)
+  - Upload via media-service with context `delivery_proof`
+  - ⚠️ Store only the MinIO object KEY in DB (never a public URL) — bucket must be private
+  - Serve via CloudFront signed URL (short TTL, e.g. 15 min) generated on demand when order detail is requested
+  - Rationale: delivery proof photos are sensitive (shows customer location/door); permanent public URLs are a privacy violation
 - Notification Service — NestJS module
 - Socket.IO Gateway with Redis adapter
 - Room management (order rooms, tracking rooms, user rooms)

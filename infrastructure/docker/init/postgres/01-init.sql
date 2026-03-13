@@ -15,6 +15,7 @@ CREATE DATABASE grab_orders;
 CREATE DATABASE grab_payments;
 CREATE DATABASE grab_delivery;
 CREATE DATABASE grab_promotions;
+CREATE DATABASE grab_media;
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE grab_users TO grab_user;
@@ -23,6 +24,7 @@ GRANT ALL PRIVILEGES ON DATABASE grab_orders TO grab_user;
 GRANT ALL PRIVILEGES ON DATABASE grab_payments TO grab_user;
 GRANT ALL PRIVILEGES ON DATABASE grab_delivery TO grab_user;
 GRANT ALL PRIVILEGES ON DATABASE grab_promotions TO grab_user;
+GRANT ALL PRIVILEGES ON DATABASE grab_media TO grab_user;
 
 -- Enable extensions in each service DB
 \c grab_users
@@ -45,4 +47,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "postgis";
 
 \c grab_promotions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+\c grab_media
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

@@ -13,7 +13,8 @@
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist",
-    "db:migrate": "typeorm migration:run -d dist/database/data-source.js",
+    "db:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
+    "db:migrate": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "db:seed": "ts-node src/database/seeds/run-seeds.ts"
   },
   "dependencies": {

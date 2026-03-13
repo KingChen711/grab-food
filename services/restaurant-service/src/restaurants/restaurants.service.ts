@@ -223,6 +223,18 @@ export class RestaurantsService {
     await this.restaurantRepo.update(id, { avgRating: newAvg, totalReviews })
   }
 
+  // ─── Image URLs ───────────────────────────────────────────────────────────
+
+  public async updateCoverImage(id: string, url: string, requester: JwtPayload): Promise<void> {
+    await this.assertOwnerOrAdmin(id, requester)
+    await this.restaurantRepo.update(id, { coverImageUrl: url })
+  }
+
+  public async updateLogo(id: string, url: string, requester: JwtPayload): Promise<void> {
+    await this.assertOwnerOrAdmin(id, requester)
+    await this.restaurantRepo.update(id, { logoUrl: url })
+  }
+
   // ─── Operating hours ──────────────────────────────────────────────────────
 
   public async getHours(restaurantId: string): Promise<OperatingHours[]> {

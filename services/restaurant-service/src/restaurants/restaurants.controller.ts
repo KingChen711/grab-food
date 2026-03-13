@@ -169,6 +169,43 @@ export class RestaurantsController {
     return this.service.suspend(id, user.sub)
   }
 
+  // ─── Images ───────────────────────────────────────────────────────────────
+  //
+  // Client flow (after uploading via media-service):
+  //   1. POST /uploads/presigned  → { uploadId, presignedUrl }   (media-service)
+  //   2. PUT  presignedUrl        → upload file directly to MinIO
+  //   3. POST /uploads/:id/confirm                               (media-service)
+  //   4. GET  /uploads/:id        → poll until status = DONE, get CDN urls
+  //   5. PATCH /restaurants/:id/cover-image  { url: cdnUrl }     (here)
+
+  @Patch(':id/cover-image')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles('restaurant_owner', 'admin')
+  @ApiOperation({
+    summary: 'Update restaurant cover image URL after media-service processing (owner)',
+  })
+  @ApiResponse({ status: 204 })
+  public updateCoverImage(
+    @Param('id') id: string,
+    @Body() dto: { url: string },
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.service.updateCoverImage(id, dto.url, user)
+  }
+
+  @Patch(':id/logo')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles('restaurant_owner', 'admin')
+  @ApiOperation({ summary: 'Update restaurant logo URL after media-service processing (owner)' })
+  @ApiResponse({ status: 204 })
+  public updateLogo(
+    @Param('id') id: string,
+    @Body() dto: { url: string },
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.service.updateLogo(id, dto.url, user)
+  }
+
   // ─── Operating hours ──────────────────────────────────────────────────────
 
   @Public()

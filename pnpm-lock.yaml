@@ -684,6 +684,9 @@ importers:
       '@grab/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@nestjs/bullmq':
+        specifier: ^11.0.4
+        version: 11.0.4(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(bullmq@5.71.0)
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -699,24 +702,39 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.0.0
         version: 11.1.16(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)
+      '@nestjs/schedule':
+        specifier: ^5.0.0
+        version: 5.0.1(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)
       '@nestjs/swagger':
         specifier: ^11.0.0
         version: 11.2.6(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)
       '@nestjs/terminus':
         specifier: ^11.0.0
         version: 11.1.1(@grpc/grpc-js@1.14.3)(@grpc/proto-loader@0.8.0)(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(@nestjs/microservices@11.1.16)(@nestjs/mongoose@11.0.4(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(mongoose@8.23.0(socks@2.8.7))(rxjs@7.8.2))(@nestjs/typeorm@11.0.0(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.28(ioredis@5.10.0)(mongodb@6.20.0(socks@2.8.7))(pg@8.20.0)(redis@4.7.1)(ts-node@10.9.2(@types/node@22.19.15)(typescript@5.9.3))))(mongoose@8.23.0(socks@2.8.7))(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.28(ioredis@5.10.0)(mongodb@6.20.0(socks@2.8.7))(pg@8.20.0)(redis@4.7.1)(ts-node@10.9.2(@types/node@22.19.15)(typescript@5.9.3)))
+      '@nestjs/typeorm':
+        specifier: ^11.0.0
+        version: 11.0.0(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.28(ioredis@5.10.0)(mongodb@6.20.0(socks@2.8.7))(pg@8.20.0)(redis@4.7.1)(ts-node@10.9.2(@types/node@22.19.15)(typescript@5.9.3)))
+      bullmq:
+        specifier: ^5.71.0
+        version: 5.71.0
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
       class-validator:
         specifier: ^0.14.1
         version: 0.14.4
+      ioredis:
+        specifier: ^5.10.0
+        version: 5.10.0
       minio:
         specifier: ^8.0.5
         version: 8.0.7
       multer:
         specifier: ^1.4.5-lts.1
         version: 1.4.5-lts.2
+      pg:
+        specifier: ^8.13.1
+        version: 8.20.0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -726,6 +744,9 @@ importers:
       sharp:
         specifier: ^0.33.5
         version: 0.33.5
+      typeorm:
+        specifier: ^0.3.22
+        version: 0.3.28(ioredis@5.10.0)(mongodb@6.20.0(socks@2.8.7))(pg@8.20.0)(redis@4.7.1)(ts-node@10.9.2(@types/node@22.19.15)(typescript@5.9.3))
     devDependencies:
       '@grab/config':
         specifier: workspace:*
@@ -2764,6 +2785,9 @@ packages:
       '@types/node':
         optional: true
 
+  '@ioredis/commands@1.5.0':
+    resolution: {integrity: sha512-eUgLqrMf8nJkZxT24JvVRrQya1vZkQh8BBeYNwGDqa5I0VUi8ACx7uFvAaLxintokpTenkK6DASvo/bvNbBGow==}
+
   '@ioredis/commands@1.5.1':
     resolution: {integrity: sha512-JH8ZL/ywcJyR9MmJ5BNqZllXNZQqQbnVZOqpPQqE1vHiFgAw4NHbvE0FOduNU8IX9babitBT46571OnPTT0Zcw==}
 
@@ -2994,6 +3018,13 @@ packages:
       '@nestjs/core': ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
       bull: ^3.3 || ^4.0.0
 
+  '@nestjs/bullmq@11.0.4':
+    resolution: {integrity: sha512-wBzK9raAVG0/6NTMdvLGM4/FQ1lsB35/pYS8L6a0SDgkTiLpd7mAjQ8R692oMx5s7IjvgntaZOuTUrKYLNfIkA==}
+    peerDependencies:
+      '@nestjs/common': ^10.0.0 || ^11.0.0
+      '@nestjs/core': ^10.0.0 || ^11.0.0
+      bullmq: ^3.0.0 || ^4.0.0 || ^5.0.0
+
   '@nestjs/cache-manager@3.1.0':
     resolution: {integrity: sha512-pEIqYZrBcE8UdkJmZRduurvoUfdU+3kRPeO1R2muiMbZnRuqlki5klFFNllO9LyYWzrx98bd1j0PSPKSJk1Wbw==}
     peerDependencies:
@@ -3168,6 +3199,12 @@ packages:
       '@nestjs/common': ^11.0.0
       '@nestjs/websockets': ^11.0.0
       rxjs: ^7.1.0
+
+  '@nestjs/schedule@5.0.1':
+    resolution: {integrity: sha512-kFoel84I4RyS2LNPH6yHYTKxB16tb3auAEciFuc788C3ph6nABkUfzX5IE+unjVaRX+3GuruJwurNepMlHXpQg==}
+    peerDependencies:
+      '@nestjs/common': ^10.0.0 || ^11.0.0
+      '@nestjs/core': ^10.0.0 || ^11.0.0
 
   '@nestjs/schedule@6.1.1':
     resolution: {integrity: sha512-kQl1RRgi02GJ0uaUGCrXHCcwISsCsJDciCKe38ykJZgnAeeoeVWs8luWtBo4AqAAXm4nS5K8RlV0smHUJ4+2FA==}
@@ -4229,6 +4266,9 @@ packages:
   '@types/long@4.0.2':
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
 
+  '@types/luxon@3.4.2':
+    resolution: {integrity: sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==}
+
   '@types/luxon@3.7.1':
     resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
 
@@ -4978,6 +5018,9 @@ packages:
     resolution: {integrity: sha512-lDsx2BzkKe7gkCYiT5Acj02DpTwDznl/VNN7Psn7M3USPG7Vs/BaClZJJTAG+ufAR9++N1/NiUTdaFBWDIl5TQ==}
     engines: {node: '>=12'}
 
+  bullmq@5.71.0:
+    resolution: {integrity: sha512-aeNWh4drsafSKnAJeiNH/nZP/5O8ZdtdMbnOPZmpjXj7NZUP5YC901U3bIH41iZValm7d1i3c34ojv7q31m30w==}
+
   busboy@1.6.0:
     resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
     engines: {node: '>=10.16.0'}
@@ -5318,6 +5361,9 @@ packages:
   cron-parser@4.9.0:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
+
+  cron@3.5.0:
+    resolution: {integrity: sha512-0eYZqCnapmxYcV06uktql93wNWdlTmmBFP2iYz+JPVcQqlyFYcn1lFuIk4R54pkOmE7mcldTAPZv6X5XA4Q46A==}
 
   cron@4.4.0:
     resolution: {integrity: sha512-fkdfq+b+AHI4cKdhZlppHveI/mgz2qpiYxcm+t5E5TsxX7QrLS1VE0+7GENEk9z0EeGPcpSciGv6ez24duWhwQ==}
@@ -6323,6 +6369,10 @@ packages:
     resolution: {integrity: sha512-HVBe9OFuqs+Z6n64q09PQvP1/R4Bm+30PAyyD4wIEqssh3v9L21QjCVk4kRLucMBcDokJTcLjsGeVRlq/nH6DA==}
     engines: {node: '>=12.22.0'}
 
+  ioredis@5.9.3:
+    resolution: {integrity: sha512-VI5tMCdeoxZWU5vjHWsiE/Su76JGhBvWF1MJnV9ZtGltHk9BmD48oDq8Tj8haZ85aceXZMxLNDQZRVo5QKNgXA==}
+    engines: {node: '>=12.22.0'}
+
   ip-address@10.1.0:
     resolution: {integrity: sha512-XXADHxXmvT9+CRxhXg56LJovE+bmWnEWB78LB83VZTprKTmaC5QfruXocxzTZ2Kl0DNwKuBdlIhjL8LeY8Sf8Q==}
     engines: {node: '>= 12'}
@@ -6937,6 +6987,10 @@ packages:
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  luxon@3.5.0:
+    resolution: {integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==}
+    engines: {node: '>=12'}
+
   luxon@3.7.2:
     resolution: {integrity: sha512-vtEhXh/gNjI9Yg1u4jX/0YVPMvxzHuGgCm6tC5kZyb08yjGWGnqAjGJvcXbqQR2P3MyMEFnRbpcdFS6PBcLqew==}
     engines: {node: '>=12'}
@@ -7157,6 +7211,9 @@ packages:
   msgpackr-extract@3.0.3:
     resolution: {integrity: sha512-P0efT1C9jIdVRefqjzOQ9Xml57zpOXnIuS+csaB4MdZbTdmGDLo8XhzBG1N7aO11gKDDkJvBLULeFTo46wwreA==}
     hasBin: true
+
+  msgpackr@1.11.5:
+    resolution: {integrity: sha512-UjkUHN0yqp9RWKy0Lplhh+wlpdt9oQBYgULZOiFhV3VclSF1JnSQWZ5r9gORQlNYaUKQoR8itv7g7z1xDDuACA==}
 
   msgpackr@1.11.8:
     resolution: {integrity: sha512-bC4UGzHhVvgDNS7kn9tV8fAucIYUBuGojcaLiz7v+P63Lmtm0Xeji8B/8tYKddALXxJLpwIeBmUN3u64C4YkRA==}
@@ -10284,6 +10341,8 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.19.15
 
+  '@ioredis/commands@1.5.0': {}
+
   '@ioredis/commands@1.5.1': {}
 
   '@isaacs/cliui@8.0.2':
@@ -10606,6 +10665,14 @@ snapshots:
       bull: 4.16.5
       tslib: 2.8.1
 
+  '@nestjs/bullmq@11.0.4(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(bullmq@5.71.0)':
+    dependencies:
+      '@nestjs/bull-shared': 11.0.4(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)
+      '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core': 11.1.16(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.16)(@nestjs/platform-express@11.1.16)(@nestjs/websockets@11.1.16)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      bullmq: 5.71.0
+      tslib: 2.8.1
+
   '@nestjs/cache-manager@3.1.0(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(cache-manager@6.4.3)(keyv@5.6.0)(rxjs@7.8.2)':
     dependencies:
       '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -10785,6 +10852,12 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  '@nestjs/schedule@5.0.1(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)':
+    dependencies:
+      '@nestjs/common': 11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core': 11.1.16(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/microservices@11.1.16)(@nestjs/platform-express@11.1.16)(@nestjs/websockets@11.1.16)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      cron: 3.5.0
 
   '@nestjs/schedule@6.1.1(@nestjs/common@11.1.16(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)':
     dependencies:
@@ -11836,6 +11909,8 @@ snapshots:
 
   '@types/long@4.0.2': {}
 
+  '@types/luxon@3.4.2': {}
+
   '@types/luxon@3.7.1': {}
 
   '@types/methods@1.1.4': {}
@@ -12739,6 +12814,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  bullmq@5.71.0:
+    dependencies:
+      cron-parser: 4.9.0
+      ioredis: 5.9.3
+      msgpackr: 1.11.5
+      node-abort-controller: 3.1.1
+      semver: 7.7.4
+      tslib: 2.8.1
+      uuid: 11.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   busboy@1.6.0:
     dependencies:
       streamsearch: 1.1.0
@@ -13096,6 +13183,11 @@ snapshots:
   cron-parser@4.9.0:
     dependencies:
       luxon: 3.7.2
+
+  cron@3.5.0:
+    dependencies:
+      '@types/luxon': 3.4.2
+      luxon: 3.5.0
 
   cron@4.4.0:
     dependencies:
@@ -14331,6 +14423,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  ioredis@5.9.3:
+    dependencies:
+      '@ioredis/commands': 1.5.0
+      cluster-key-slot: 1.1.2
+      debug: 4.4.3
+      denque: 2.1.0
+      lodash.defaults: 4.2.0
+      lodash.isarguments: 3.1.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
+      standard-as-callback: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
   ip-address@10.1.0: {}
 
   ipaddr.js@1.9.1: {}
@@ -15095,6 +15201,8 @@ snapshots:
     dependencies:
       react: 19.2.4
 
+  luxon@3.5.0: {}
+
   luxon@3.7.2: {}
 
   magic-string@0.30.17:
@@ -15337,6 +15445,10 @@ snapshots:
       '@msgpackr-extract/msgpackr-extract-linux-x64': 3.0.3
       '@msgpackr-extract/msgpackr-extract-win32-x64': 3.0.3
     optional: true
+
+  msgpackr@1.11.5:
+    optionalDependencies:
+      msgpackr-extract: 3.0.3
 
   msgpackr@1.11.8:
     optionalDependencies:
