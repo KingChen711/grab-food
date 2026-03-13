@@ -12,7 +12,7 @@ import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import * as bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
-import type { Repository } from 'typeorm'
+import { IsNull, type Repository } from 'typeorm'
 
 import { UsersService } from '../users/users.service'
 import type { LoginWithEmailDto, LoginWithPhoneDto } from './dto/login.dto'
@@ -61,8 +61,11 @@ export class AuthService {
     dto: RegisterWithPhoneDto,
     ipAddress?: string,
   ): Promise<AuthTokens> {
-    // In a real implementation, verify OTP before proceeding.
-    // For now we create the user and mark phone verified.
+    const isOtpValid = await this.otpService.verifyOtp(dto.phone, dto.otp)
+    if (!isOtpValid) {
+      throw new UnauthorizedException('Invalid or expired OTP')
+    }
+
     const existing = await this.usersService.findByPhone(dto.phone)
     if (existing) throw new ConflictException('Phone number is already registered')
 
@@ -108,7 +111,11 @@ export class AuthService {
   }
 
   public async loginWithPhone(dto: LoginWithPhoneDto, ipAddress?: string): Promise<AuthTokens> {
-    // OTP verification should be done before calling this method.
+    const isOtpValid = await this.otpService.verifyOtp(dto.phone, dto.otp)
+    if (!isOtpValid) {
+      throw new UnauthorizedException('Invalid or expired OTP')
+    }
+
     const user = await this.usersService.findByPhone(dto.phone)
     if (!user) {
       throw new UnauthorizedException('Phone number not registered')
@@ -290,7 +297,7 @@ export class AuthService {
 
     // 3. If no specific refresh token provided, revoke all tokens for this user
     await this.refreshTokenRepo.update(
-      { user: { id: userId }, revokedAt: undefined as unknown as Date },
+      { user: { id: userId }, revokedAt: IsNull() },
       { revokedAt: new Date() },
     )
   }
@@ -304,7 +311,7 @@ export class AuthService {
 
     // Revoke all refresh tokens
     await this.refreshTokenRepo.update(
-      { user: { id: userId }, revokedAt: undefined as unknown as Date },
+      { user: { id: userId }, revokedAt: IsNull() },
       { revokedAt: new Date() },
     )
   }

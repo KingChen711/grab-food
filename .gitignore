@@ -44,3 +44,7 @@ coverage
 # Misc
 *.pem
 .cache
+
+.agents/
+.claude/
+skills-lock.json

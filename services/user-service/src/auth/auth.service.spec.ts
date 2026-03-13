@@ -110,7 +110,7 @@ describe('AuthService Logout', () => {
       await authService.logout('user-1')
 
       expect(refreshTokenRepo.update).toHaveBeenCalledWith(
-        { user: { id: 'user-1' }, revokedAt: undefined },
+        { user: { id: 'user-1' }, revokedAt: expect.objectContaining({ _type: 'isNull' }) },
         { revokedAt: expect.any(Date) },
       )
     })
@@ -123,7 +123,7 @@ describe('AuthService Logout', () => {
       // accessExpiresIn is '15m' which is 900 seconds
       expect(tokenBlacklistService.blacklistAllForUser).toHaveBeenCalledWith('user-123', 900)
       expect(refreshTokenRepo.update).toHaveBeenCalledWith(
-        { user: { id: 'user-123' }, revokedAt: undefined },
+        { user: { id: 'user-123' }, revokedAt: expect.objectContaining({ _type: 'isNull' }) },
         { revokedAt: expect.any(Date) },
       )
     })

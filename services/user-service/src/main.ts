@@ -1,11 +1,10 @@
-import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common'
-import { NestFactory, Reflector } from '@nestjs/core'
+import { Logger, ValidationPipe } from '@nestjs/common'
+import { NestFactory } from '@nestjs/core'
 import type { MicroserviceOptions } from '@nestjs/microservices'
 import { Transport } from '@nestjs/microservices'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 import { AppModule } from './app.module'
-import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
@@ -29,10 +28,6 @@ async function bootstrap(): Promise<void> {
       transformOptions: { enableImplicitConversion: true },
     }),
   )
-
-  // ClassSerializerInterceptor needs Reflector from app context
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
-  app.useGlobalFilters(new HttpExceptionFilter())
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('User Service')

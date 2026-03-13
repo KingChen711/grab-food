@@ -22,13 +22,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             type={type}
             className={cn(
-              'flex h-10 w-full rounded-md border bg-background text-sm ring-offset-background',
+              'flex h-10 w-full rounded-md border bg-background py-2 text-sm ring-offset-background',
               'placeholder:text-muted-foreground',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               'disabled:cursor-not-allowed disabled:opacity-50',
               'transition-colors duration-200',
-              leftIcon ? 'pl-9' : 'px-3',
-              rightIcon ? 'pr-9' : 'px-3',
+              leftIcon ? 'pl-9' : 'pl-3',
+              rightIcon ? 'pr-9' : 'pr-3',
               error ? 'border-destructive focus-visible:ring-destructive' : 'border-input',
               className,
             )}
