@@ -1,12 +1,13 @@
 'use client'
 
 import { Button } from '@grab/ui'
-import { UtensilsCrossed } from 'lucide-react'
+import { ShoppingCart, UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useAuth } from '@/hooks/use-auth'
+import { useCartStore } from '@/stores/cart.store'
 
 import { UserMenu } from './user-menu'
 
@@ -19,6 +20,7 @@ const NAV_LINKS = [
 export function Navbar() {
   const { user, isAuthenticated } = useAuth()
   const pathname = usePathname()
+  const totalItems = useCartStore((s) => s.totalItems())
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
@@ -46,6 +48,17 @@ export function Navbar() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {totalItems > 0 && (
+            <Link
+              href="/cart"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full border bg-card hover:bg-accent"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground">
+                {totalItems}
+              </span>
+            </Link>
+          )}
           <ThemeToggle />
           {isAuthenticated && user ? (
             <UserMenu user={user} />

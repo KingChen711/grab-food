@@ -65,6 +65,15 @@ export class RestaurantsController {
   }
 
   @Public()
+  @Get('by-slug/:slug')
+  @ApiOperation({ summary: 'Get restaurant by slug' })
+  @ApiResponse({ status: 200, description: 'Restaurant details' })
+  @ApiResponse({ status: 404, description: 'Not found' })
+  public findBySlug(@Param('slug') slug: string): Promise<Restaurant> {
+    return this.service.findBySlug(slug)
+  }
+
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get restaurant by ID' })
   @ApiResponse({ status: 200, description: 'Restaurant details' })

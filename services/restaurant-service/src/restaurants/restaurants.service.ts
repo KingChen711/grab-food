@@ -129,6 +129,15 @@ export class RestaurantsService {
     return restaurant
   }
 
+  public async findBySlug(slug: string): Promise<Restaurant> {
+    const restaurant = await this.restaurantRepo.findOne({
+      where: { slug },
+      relations: ['operatingHours'],
+    })
+    if (!restaurant) throw new NotFoundException(`Restaurant "${slug}" not found`)
+    return restaurant
+  }
+
   public async findByOwner(ownerId: string): Promise<Restaurant[]> {
     return this.restaurantRepo.find({
       where: { ownerId },
