@@ -10,7 +10,9 @@ import { MinioService } from './minio.service'
 import { ImageProcessor } from './processors/image.processor'
 import { IMAGE_PROCESSING_QUEUE } from './upload.constants'
 import { UploadController } from './upload.controller'
+import { UploadGateway } from './upload.gateway'
 import { UploadService } from './upload.service'
+import { UploadProgressService } from './upload-progress.service'
 
 @Module({
   imports: [
@@ -29,6 +31,13 @@ import { UploadService } from './upload.service'
     ScheduleModule.forRoot(),
   ],
   controllers: [UploadController],
-  providers: [MinioService, UploadService, ImageProcessor, UploadCleanupService],
+  providers: [
+    MinioService,
+    UploadService,
+    ImageProcessor,
+    UploadCleanupService,
+    UploadProgressService,
+    UploadGateway,
+  ],
 })
 export class UploadModule {}

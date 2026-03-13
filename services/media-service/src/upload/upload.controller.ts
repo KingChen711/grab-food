@@ -23,11 +23,23 @@ export class UploadController {
    */
   @Post('presigned')
   @ApiOperation({ summary: 'Request a presigned MinIO PUT URL for direct client upload' })
-  @ApiResponse({ status: 201, description: '{ uploadId, presignedUrl, expiresAt }' })
-  public requestPresigned(
-    @Body() dto: RequestUploadDto,
-  ): Promise<{ uploadId: string; presignedUrl: string; expiresAt: string }> {
-    return this.uploadService.requestPresignedUrl(dto.context, dto.entityId)
+  @ApiResponse({
+    status: 201,
+    description: '{ uploadId, presignedUrl, expiresAt, wsRoom, wsNamespace }',
+  })
+  public async requestPresigned(@Body() dto: RequestUploadDto): Promise<{
+    uploadId: string
+    presignedUrl: string
+    expiresAt: string
+    wsRoom: string
+    wsNamespace: string
+  }> {
+    const result = await this.uploadService.requestPresignedUrl(dto.context, dto.entityId)
+    return {
+      ...result,
+      wsRoom: `upload:${result.uploadId}`,
+      wsNamespace: '/uploads',
+    }
   }
 
   /**
