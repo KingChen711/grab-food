@@ -15,7 +15,8 @@
     "clean": "rimraf dist",
     "db:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
     "db:migrate": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
-    "db:seed": "ts-node src/database/seeds/run-seeds.ts"
+    "db:seed": "ts-node src/database/seeds/run-seeds.ts",
+    "search:reindex": "ts-node src/scripts/reindex-search.ts"
   },
   "dependencies": {
     "@grab/nestjs-common": "workspace:*",
