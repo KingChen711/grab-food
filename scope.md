@@ -1310,6 +1310,8 @@ Mỗi service expose:
 - Password reset flow (email OTP)
 - Profile CRUD
 - Address management (CRUD, set default, geocoding integration)
+  - Real location search via Google Places Autocomplete API (address form)
+  - Reverse geocoding to always resolve lat/lng — coordinates are required, never null
 - Swagger documentation
 - Unit tests cho auth logic
 - Integration tests (Supertest + real DB)

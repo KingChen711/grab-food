@@ -10,10 +10,10 @@ async function proxy(req: NextRequest) {
   const headers = new Headers()
   headers.set('Content-Type', 'application/json')
 
-  // Forward authorization header from client
-  const auth = req.headers.get('Authorization')
-  if (auth) {
-    headers.set('Authorization', auth)
+  // Read access token from httpOnly cookie and forward to backend
+  const token = req.cookies.get('access_token')?.value
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
   }
 
   const init: RequestInit = {
@@ -30,7 +30,8 @@ async function proxy(req: NextRequest) {
 
   try {
     const res = await fetch(url, init)
-    const data = await res.text()
+    const isNullBody = res.status === 204 || res.status === 205 || res.status === 304
+    const data = isNullBody ? null : await res.text()
 
     return new NextResponse(data, {
       status: res.status,

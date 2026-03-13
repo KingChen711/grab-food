@@ -9,25 +9,16 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// ─── Request interceptor: attach access token ─────────────────────────────────
-apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
 // ─── Refresh queue logic ──────────────────────────────────────────────────────
 let isRefreshing = false
-let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = []
+let failedQueue: Array<{ resolve: () => void; reject: (err: unknown) => void }> = []
 
-function processQueue(error: unknown, token: string | null) {
+function processQueue(error: unknown) {
   for (const prom of failedQueue) {
     if (error) {
       prom.reject(error)
     } else {
-      prom.resolve(token!)
+      prom.resolve()
     }
   }
   failedQueue = []
@@ -43,6 +34,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    // Don't retry if not authenticated — no token to refresh (e.g. wrong password on login page)
+    if (!useAuthStore.getState().isAuthenticated) {
+      return Promise.reject(error)
+    }
+
     // Don't retry the refresh endpoint itself or already-retried requests
     if (originalRequest.url === '/auth/refresh' || originalRequest._retry) {
       useAuthStore.getState().logout()
@@ -54,39 +50,21 @@ apiClient.interceptors.response.use(
 
     // Queue concurrent requests while refreshing
     if (isRefreshing) {
-      return new Promise<string>((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         failedQueue.push({ resolve, reject })
-      }).then((token) => {
-        originalRequest.headers.Authorization = `Bearer ${token}`
-        return apiClient(originalRequest)
-      })
+      }).then(() => apiClient(originalRequest))
     }
 
     originalRequest._retry = true
     isRefreshing = true
 
-    const { refreshToken } = useAuthStore.getState()
-    if (!refreshToken) {
-      useAuthStore.getState().logout()
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login'
-      }
-      return Promise.reject(error)
-    }
-
     try {
-      const { data } = await apiClient.post<{
-        accessToken: string
-        refreshToken: string
-        expiresIn: number
-      }>('/auth/refresh', { refreshToken })
-
-      useAuthStore.getState().setTokens(data)
-      processQueue(null, data.accessToken)
-      originalRequest.headers.Authorization = `Bearer ${data.accessToken}`
+      // Route handler reads refresh_token cookie and sets new cookies
+      await apiClient.post('/auth/refresh')
+      processQueue(null)
       return apiClient(originalRequest)
     } catch (refreshError) {
-      processQueue(refreshError, null)
+      processQueue(refreshError)
       useAuthStore.getState().logout()
       if (typeof window !== 'undefined') {
         window.location.href = '/login'

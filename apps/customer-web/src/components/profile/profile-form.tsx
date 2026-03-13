@@ -26,10 +26,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const form = useForm<UpdateProfileInput>({
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
-      fullName: user.profile.fullName,
-      dateOfBirth: user.profile.dateOfBirth ?? '',
-      bio: user.profile.bio ?? '',
-      avatarUrl: user.profile.avatarUrl ?? '',
+      fullName: user.profile?.fullName ?? '',
+      dateOfBirth: user.profile?.dateOfBirth ?? '',
+      bio: user.profile?.bio ?? '',
+      avatarUrl: user.profile?.avatarUrl ?? '',
     },
   })
 
@@ -50,9 +50,15 @@ export function ProfileForm({ user }: ProfileFormProps) {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <UserAvatar name={user.profile.fullName} imageUrl={user.profile.avatarUrl} size="lg" />
+            <UserAvatar
+              name={user.profile?.fullName ?? user.email ?? user.phone ?? '—'}
+              imageUrl={user.profile?.avatarUrl}
+              size="lg"
+            />
             <div>
-              <h2 className="text-xl font-semibold">{user.profile.fullName}</h2>
+              <h2 className="text-xl font-semibold">
+                {user.profile?.fullName ?? user.email ?? user.phone ?? '—'}
+              </h2>
               <p className="text-sm text-muted-foreground">{user.email ?? user.phone}</p>
             </div>
           </div>
@@ -62,7 +68,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           </Button>
         </div>
 
-        {user.profile.bio && <p className="text-sm text-muted-foreground">{user.profile.bio}</p>}
+        {user.profile?.bio && <p className="text-sm text-muted-foreground">{user.profile.bio}</p>}
 
         <div className="grid gap-4 text-sm sm:grid-cols-2">
           <div>
@@ -75,7 +81,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
           </div>
           <div>
             <p className="font-medium text-muted-foreground">Date of birth</p>
-            <p>{user.profile.dateOfBirth ?? '—'}</p>
+            <p>{user.profile?.dateOfBirth ?? '—'}</p>
           </div>
           <div>
             <p className="font-medium text-muted-foreground">Role</p>

@@ -23,24 +23,30 @@ export interface CreateAddressInput {
 
 export type UpdateAddressInput = Partial<CreateAddressInput>
 
+// Backend wraps all responses via TransformInterceptor: { success, data, timestamp }
+type Wrapped<T> = { data: T }
+
 export const usersApi = {
   getMe: async (): Promise<User> => {
-    const res = await apiClient.get<User>('/users/me')
-    return res.data
+    const res = await apiClient.get<Wrapped<User>>('/users/me')
+    return res.data.data
   },
 
   updateProfile: async (data: UpdateProfileInput): Promise<void> => {
-    await apiClient.patch('/users/me', data)
+    const payload = Object.fromEntries(
+      Object.entries(data).filter(([, v]) => v !== '' && v !== undefined),
+    )
+    await apiClient.patch('/users/me', payload)
   },
 
   getAddresses: async (): Promise<UserAddress[]> => {
-    const res = await apiClient.get<UserAddress[]>('/users/me/addresses')
-    return res.data
+    const res = await apiClient.get<Wrapped<UserAddress[]>>('/users/me/addresses')
+    return res.data.data
   },
 
   createAddress: async (data: CreateAddressInput): Promise<UserAddress> => {
-    const res = await apiClient.post<UserAddress>('/users/me/addresses', data)
-    return res.data
+    const res = await apiClient.post<Wrapped<UserAddress>>('/users/me/addresses', data)
+    return res.data.data
   },
 
   updateAddress: async (id: string, data: UpdateAddressInput): Promise<void> => {

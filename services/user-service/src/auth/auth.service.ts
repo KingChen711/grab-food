@@ -188,7 +188,7 @@ export class AuthService {
   // ─── Google OAuth2 Login ─────────────────────────────────────────────
 
   public async loginWithGoogle(idToken: string, ipAddress?: string): Promise<AuthTokens> {
-    const profile = await this.googleAuthService.verifyIdToken(idToken)
+    const profile = await this.googleAuthService.verifyAccessToken(idToken)
 
     // 1. Try to find an existing user by googleId
     let user = await this.usersService.findByGoogleId(profile.googleId)
@@ -216,14 +216,17 @@ export class AuthService {
         googleId: profile.googleId,
         role: 'customer',
       })
-      // Mark email as verified since Google already verified it
-      await this.usersService.markEmailVerified(user.id)
       // Re-fetch the updated user
       user = await this.usersService.findById(user.id)
     }
 
     if (user.status === 'suspended') {
       throw new ForbiddenException('Account suspended. Contact support.')
+    }
+
+    // Mark email as verified since Google already verified it
+    if (!user.isEmailVerified) {
+      await this.usersService.markEmailVerified(user.id)
     }
 
     this.logger.log(`User logged in via Google: ${user.id}`)

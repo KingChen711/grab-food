@@ -15,6 +15,8 @@ interface UserMenuProps {
 export function UserMenu({ user }: UserMenuProps) {
   const logout = useLogout()
 
+  console.log({ user })
+
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
@@ -22,8 +24,14 @@ export function UserMenu({ user }: UserMenuProps) {
           aria-label="User menu"
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <UserAvatar name={user.profile.fullName} imageUrl={user.profile.avatarUrl} size="sm" />
-          <span className="hidden md:block">{user.profile.fullName}</span>
+          <UserAvatar
+            name={user.profile?.fullName ?? user.email ?? user.phone ?? '—'}
+            imageUrl={user.profile?.avatarUrl}
+            size="sm"
+          />
+          <span className="hidden md:block">
+            {user.profile?.fullName ?? user.email ?? user.phone ?? '—'}
+          </span>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
         </button>
       </DropdownMenu.Trigger>
@@ -35,7 +43,9 @@ export function UserMenu({ user }: UserMenuProps) {
           className="z-50 min-w-[180px] animate-fade-in rounded-lg border bg-popover p-1 shadow-floating"
         >
           <div className="px-3 py-2">
-            <p className="text-sm font-medium">{user.profile.fullName}</p>
+            <p className="text-sm font-medium">
+              {user.profile?.fullName ?? user.email ?? user.phone ?? '—'}
+            </p>
             <p className="truncate text-xs text-muted-foreground">{user.email ?? user.phone}</p>
           </div>
 

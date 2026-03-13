@@ -123,7 +123,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Login successful, returns JWT tokens' })
   @ApiResponse({ status: 401, description: 'Invalid Google token' })
   public loginWithGoogle(@Body() dto: GoogleVerifyDto, @Ip() ip: string): Promise<AuthTokens> {
-    return this.authService.loginWithGoogle(dto.idToken, ip)
+    return this.authService.loginWithGoogle(dto.accessToken, ip)
   }
 
   // ─── Password Reset ───────────────────────────────────────

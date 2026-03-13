@@ -1,5 +1,3 @@
-import type { AuthTokens } from '@grab/types'
-
 import { apiClient } from './client'
 
 export interface LoginEmailInput {
@@ -38,29 +36,24 @@ export interface ResetPasswordInput {
 }
 
 export const authApi = {
-  loginWithEmail: async (data: LoginEmailInput): Promise<AuthTokens> => {
-    const res = await apiClient.post<AuthTokens>('/auth/login/email', data)
-    return res.data
+  loginWithEmail: async (data: LoginEmailInput): Promise<void> => {
+    await apiClient.post('/auth/login/email', data)
   },
 
-  loginWithPhone: async (data: LoginPhoneInput): Promise<AuthTokens> => {
-    const res = await apiClient.post<AuthTokens>('/auth/login/phone', data)
-    return res.data
+  loginWithPhone: async (data: LoginPhoneInput): Promise<void> => {
+    await apiClient.post('/auth/login/phone', data)
   },
 
-  registerWithEmail: async (data: RegisterEmailInput): Promise<AuthTokens> => {
-    const res = await apiClient.post<AuthTokens>('/auth/register/email', data)
-    return res.data
+  registerWithEmail: async (data: RegisterEmailInput): Promise<void> => {
+    await apiClient.post('/auth/register/email', data)
   },
 
-  registerWithPhone: async (data: RegisterPhoneInput): Promise<AuthTokens> => {
-    const res = await apiClient.post<AuthTokens>('/auth/register/phone', data)
-    return res.data
+  registerWithPhone: async (data: RegisterPhoneInput): Promise<void> => {
+    await apiClient.post('/auth/register/phone', data)
   },
 
-  loginWithGoogle: async (idToken: string): Promise<AuthTokens> => {
-    const res = await apiClient.post<AuthTokens>('/auth/google/verify', { idToken })
-    return res.data
+  loginWithGoogle: async (accessToken: string): Promise<void> => {
+    await apiClient.post('/auth/google/verify', { accessToken })
   },
 
   forgotPassword: async (data: ForgotPasswordInput): Promise<void> => {
@@ -71,12 +64,7 @@ export const authApi = {
     await apiClient.post('/auth/reset-password', data)
   },
 
-  logout: async (refreshToken?: string): Promise<void> => {
-    await apiClient.post('/auth/logout', { refreshToken })
-  },
-
-  refresh: async (refreshToken: string): Promise<AuthTokens> => {
-    const res = await apiClient.post<AuthTokens>('/auth/refresh', { refreshToken })
-    return res.data
+  logout: async (): Promise<void> => {
+    await apiClient.post('/auth/logout')
   },
 }

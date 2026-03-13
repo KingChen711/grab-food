@@ -1,6 +1,5 @@
 'use client'
 
-import type { AuthTokens } from '@grab/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -38,16 +37,16 @@ export function useMe() {
 }
 
 /**
- * Shared post-login logic: store tokens, prefetch user, navigate.
- * Uses queryClient.fetchQuery so the "me" cache is populated before redirect.
+ * Shared post-login logic: mark authenticated, prefetch user, navigate.
+ * Tokens are stored in httpOnly cookies — never handled client-side.
  */
 function usePostLogin() {
-  const { setTokens, setUser } = useAuthStore()
+  const { setAuthenticated, setUser } = useAuthStore()
   const queryClient = useQueryClient()
   const router = useRouter()
 
-  return async (tokens: AuthTokens) => {
-    setTokens(tokens)
+  return async () => {
+    setAuthenticated()
     const user = await queryClient.fetchQuery({
       queryKey: queryKeys.me,
       queryFn: () => usersApi.getMe(),
@@ -93,9 +92,9 @@ export function useRegisterEmail() {
         fullName: data.fullName,
         phone: data.phone || undefined,
       }),
-    onSuccess: async (tokens) => {
+    onSuccess: async () => {
       toast.success('Account created successfully!')
-      await postLogin(tokens)
+      await postLogin()
     },
     onError: (err: { response?: { status?: number } }) => {
       if (err.response?.status === 409) {
@@ -113,9 +112,9 @@ export function useRegisterPhone() {
   return useMutation({
     mutationFn: (data: RegisterPhoneInput) =>
       authApi.registerWithPhone({ phone: data.phone, fullName: data.fullName, otp: data.otp }),
-    onSuccess: async (tokens) => {
+    onSuccess: async () => {
       toast.success('Account created successfully!')
-      await postLogin(tokens)
+      await postLogin()
     },
     onError: (err: { response?: { status?: number } }) => {
       if (err.response?.status === 409) {
@@ -140,12 +139,12 @@ export function useGoogleLogin() {
 }
 
 export function useLogout() {
-  const { logout, refreshToken } = useAuthStore()
+  const { logout } = useAuthStore()
   const queryClient = useQueryClient()
   const router = useRouter()
 
   return useMutation({
-    mutationFn: () => authApi.logout(refreshToken ?? undefined),
+    mutationFn: () => authApi.logout(),
     onSettled: () => {
       logout()
       queryClient.clear()

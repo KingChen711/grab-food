@@ -24,7 +24,7 @@ export interface User {
 }
 
 export interface UserProfile {
-  fullName: string
+  fullName?: string
   avatarUrl?: string
   dateOfBirth?: string
   bio?: string

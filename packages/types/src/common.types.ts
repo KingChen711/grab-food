@@ -40,7 +40,8 @@ export interface Address {
   district?: string
   city: string
   country: string
-  coordinates: Coordinates
+  lat?: number
+  lng?: number
 }
 
 export interface GeoQuery {

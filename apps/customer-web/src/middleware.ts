@@ -6,7 +6,7 @@ const AUTH_PATHS = ['/login', '/register', '/forgot-password']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const isAuth = !!request.cookies.get('grab_auth')?.value
+  const isAuth = !!request.cookies.get('access_token')?.value
 
   if (PROTECTED_PATHS.some((p) => pathname.startsWith(p)) && !isAuth) {
     const url = request.nextUrl.clone()

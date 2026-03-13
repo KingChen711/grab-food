@@ -2,9 +2,9 @@ import { ApiProperty } from '@nestjs/swagger'
 import { IsEmail, IsString, Length, MinLength } from 'class-validator'
 
 export class GoogleVerifyDto {
-  @ApiProperty({ description: 'Google ID Token from the frontend Google SDK' })
+  @ApiProperty({ description: 'Google Access Token from the frontend OAuth flow' })
   @IsString()
-  public idToken: string
+  public accessToken: string
 }
 
 export class ForgotPasswordDto {

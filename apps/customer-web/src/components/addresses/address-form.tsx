@@ -35,8 +35,8 @@ export function AddressForm({ open, onClose, address }: AddressFormProps) {
       district: address?.district ?? '',
       city: address?.city ?? '',
       country: address?.country ?? 'Vietnam',
-      lat: address?.coordinates.lat,
-      lng: address?.coordinates.lng,
+      lat: address?.lat,
+      lng: address?.lng,
       isDefault: address?.isDefault ?? false,
     },
   })

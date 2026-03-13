@@ -2,9 +2,9 @@ import './globals.css'
 
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 import { Toaster } from 'sonner'
 
+import { GoogleProvider } from '@/providers/google-provider'
 import { QueryProvider } from '@/providers/query-provider'
 import { ThemeProvider } from '@/providers/theme-provider'
 
@@ -26,12 +26,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ThemeProvider>
-          <QueryProvider>
-            {children}
-            <Toaster richColors position="top-right" />
-          </QueryProvider>
+          <GoogleProvider>
+            <QueryProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </QueryProvider>
+          </GoogleProvider>
         </ThemeProvider>
-        <Script src="https://accounts.google.com/gsi/client" strategy="lazyOnload" async defer />
       </body>
     </html>
   )

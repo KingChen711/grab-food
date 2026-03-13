@@ -20,7 +20,6 @@ import type { UpdateAddressDto } from './dto/update-address.dto'
 import type { UpdateProfileDto } from './dto/update-profile.dto'
 import type { User } from './entities/user.entity'
 import type { UserAddress } from './entities/user-address.entity'
-import type { UserProfile } from './entities/user-profile.entity'
 import { UsersService } from './users.service'
 
 @ApiTags('users')
@@ -33,10 +32,10 @@ export class UsersController {
   // ─── Profile Endpoints ────────────────────────────────────
 
   @Get('me')
-  @ApiOperation({ summary: 'Get current user profile' })
-  @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
-  public getProfile(@CurrentUser() user: User): Promise<UserProfile> {
-    return this.usersService.getProfile(user.id)
+  @ApiOperation({ summary: 'Get current user' })
+  @ApiResponse({ status: 200, description: 'User retrieved successfully' })
+  public getMe(@CurrentUser() user: User): User {
+    return user
   }
 
   @Patch('me')

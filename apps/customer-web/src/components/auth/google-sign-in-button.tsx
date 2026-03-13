@@ -1,33 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useGoogleLogin } from '@react-oauth/google'
 
-import { useGoogleLogin } from '@/hooks/use-auth-query'
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: {
-            client_id: string
-            callback: (response: { credential: string }) => void
-            auto_select?: boolean
-          }) => void
-          renderButton: (
-            element: HTMLElement,
-            options: {
-              theme?: string
-              size?: string
-              width?: number
-              text?: string
-            },
-          ) => void
-        }
-      }
-    }
-  }
-}
+import { useGoogleLogin as useGoogleLoginMutation } from '@/hooks/use-auth-query'
 
 function GoogleIcon() {
   return (
@@ -53,71 +28,22 @@ function GoogleIcon() {
 }
 
 export function GoogleSignInButton() {
-  const nativeRef = useRef<HTMLDivElement>(null)
-  const googleLogin = useGoogleLogin()
-  const mutateRef = useRef(googleLogin.mutate)
-  mutateRef.current = googleLogin.mutate
-  const [sdkLoaded, setSdkLoaded] = useState(false)
+  const googleLoginMutation = useGoogleLoginMutation()
 
-  const handleCredential = useCallback(({ credential }: { credential: string }) => {
-    mutateRef.current(credential)
-  }, [])
-
-  useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    if (!clientId || !nativeRef.current) return
-
-    const el = nativeRef.current
-
-    const tryInit = () => {
-      if (!window.google?.accounts.id) return false
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleCredential,
-      })
-      window.google.accounts.id.renderButton(el, {
-        theme: 'outline',
-        size: 'large',
-        width: el.offsetWidth,
-        text: 'continue_with',
-      })
-      setSdkLoaded(true)
-      return true
-    }
-
-    if (tryInit()) return
-
-    const interval = setInterval(() => {
-      if (tryInit()) {
-        clearInterval(interval)
-      }
-    }, 200)
-
-    // Stop polling after 5 seconds
-    const timeout = setTimeout(() => clearInterval(interval), 5000)
-
-    return () => {
-      clearInterval(interval)
-      clearTimeout(timeout)
-    }
-  }, [handleCredential])
+  const login = useGoogleLogin({
+    onSuccess: ({ access_token }) => googleLoginMutation.mutate(access_token),
+    flow: 'implicit',
+  })
 
   return (
-    <div className="w-full">
-      {/* Native Google button (rendered by SDK) */}
-      <div ref={nativeRef} className={sdkLoaded ? 'w-full' : 'hidden'} />
-
-      {/* Fallback styled button (shown when SDK hasn't loaded) */}
-      {!sdkLoaded && (
-        <button
-          type="button"
-          disabled
-          className="flex h-10 w-full items-center justify-center gap-3 rounded-md border bg-background text-sm font-medium text-muted-foreground transition-colors"
-        >
-          <GoogleIcon />
-          Continue with Google
-        </button>
-      )}
-    </div>
+    <button
+      type="button"
+      onClick={() => login()}
+      disabled={googleLoginMutation.isPending}
+      className="flex h-10 w-full cursor-pointer items-center justify-center gap-3 rounded-md border bg-background text-sm font-medium transition-colors hover:bg-accent disabled:opacity-50"
+    >
+      <GoogleIcon />
+      Continue with Google
+    </button>
   )
 }

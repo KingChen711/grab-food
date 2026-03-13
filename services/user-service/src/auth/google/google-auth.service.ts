@@ -18,18 +18,22 @@ export class GoogleAuthService {
   }
 
   /**
-   * Verify a Google ID Token sent from the frontend.
-   * Returns the user's Google profile extracted from the token payload.
+   * Verify a Google Access Token sent from the frontend.
+   * Calls Google's userinfo endpoint to retrieve the user's profile.
    */
-  public async verifyIdToken(idToken: string): Promise<GoogleProfile> {
+  public async verifyAccessToken(accessToken: string): Promise<GoogleProfile> {
     try {
-      const ticket = await this.client.verifyIdToken({
-        idToken,
-        audience: this.configService.get<string>('google.clientId'),
+      const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
 
-      const payload = ticket.getPayload()
-      if (!payload || !payload.sub) {
+      if (!res.ok) {
+        throw new UnauthorizedException('Invalid or expired Google token')
+      }
+
+      const payload = (await res.json()) as { sub?: string; email?: string; name?: string }
+
+      if (!payload.sub) {
         throw new UnauthorizedException('Invalid Google token payload')
       }
 
