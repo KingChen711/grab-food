@@ -223,6 +223,69 @@ export class RestaurantsService {
     await this.restaurantRepo.update(id, { avgRating: newAvg, totalReviews })
   }
 
+  // ─── Operating hours ──────────────────────────────────────────────────────
+
+  public async getHours(restaurantId: string): Promise<OperatingHours[]> {
+    await this.findById(restaurantId) // ensure restaurant exists
+    return this.hoursRepo.find({ where: { restaurantId }, order: { dayOfWeek: 'ASC' } })
+  }
+
+  public async updateAllHours(
+    restaurantId: string,
+    hours: Array<{ dayOfWeek: string; openTime?: string; closeTime?: string; isClosed?: boolean }>,
+    requester: JwtPayload,
+  ): Promise<void> {
+    await this.assertOwnerOrAdmin(restaurantId, requester)
+    await this.hoursRepo.delete({ restaurantId })
+    const entities = hours.map((h) =>
+      this.hoursRepo.create({
+        restaurantId,
+        dayOfWeek: h.dayOfWeek as OperatingHours['dayOfWeek'],
+        openTime: h.openTime ?? '09:00',
+        closeTime: h.closeTime ?? '22:00',
+        isClosed: h.isClosed ?? false,
+      }),
+    )
+    await this.hoursRepo.save(entities)
+  }
+
+  public async updateDayHours(
+    restaurantId: string,
+    day: string,
+    dto: { openTime?: string; closeTime?: string; isClosed?: boolean },
+    requester: JwtPayload,
+  ): Promise<void> {
+    await this.assertOwnerOrAdmin(restaurantId, requester)
+    const existing = await this.hoursRepo.findOne({
+      where: { restaurantId, dayOfWeek: day as OperatingHours['dayOfWeek'] },
+    })
+
+    if (existing) {
+      if (dto.openTime !== undefined) existing.openTime = dto.openTime
+      if (dto.closeTime !== undefined) existing.closeTime = dto.closeTime
+      if (dto.isClosed !== undefined) existing.isClosed = dto.isClosed
+      await this.hoursRepo.save(existing)
+    } else {
+      await this.hoursRepo.save(
+        this.hoursRepo.create({
+          restaurantId,
+          dayOfWeek: day as OperatingHours['dayOfWeek'],
+          openTime: dto.openTime ?? '09:00',
+          closeTime: dto.closeTime ?? '22:00',
+          isClosed: dto.isClosed ?? false,
+        }),
+      )
+    }
+  }
+
+  // ─── Shared authorization helper ─────────────────────────────────────────
+
+  public async assertOwnerOrAdmin(restaurantId: string, requester: JwtPayload): Promise<void> {
+    if (requester.role === 'admin') return
+    const restaurant = await this.findById(restaurantId)
+    this.assertOwnership(restaurant, requester)
+  }
+
   // ─── Private helpers ──────────────────────────────────────────────────────
 
   private assertOwnership(restaurant: Restaurant, requester: JwtPayload): void {

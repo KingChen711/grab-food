@@ -1284,6 +1284,7 @@ Mỗi service expose:
 - Tạo NestJS workspace cho backend services (Nx hoặc NestJS monorepo mode)
 - Setup Docker Compose cho infrastructure (PostgreSQL, MongoDB, Redis, RabbitMQ)
 - Setup Docker Compose cho Elasticsearch, MinIO, Kafka
+- PgBouncer connection pooling in front of PostgreSQL — transaction pooling mode, cap connections to DB regardless of how many service instances spin up (TODO)
 - Dockerfile cho mỗi service (multi-stage build)
 - GitHub Actions CI pipeline (lint, test, build)
 - Setup Husky + lint-staged (pre-commit hooks)
@@ -1356,8 +1357,27 @@ Mỗi service expose:
 - Geo-spatial search (restaurants within radius)
 - Autocomplete/typeahead endpoint
 - Faceted filters (cuisine, price, rating, delivery time)
-- Kafka consumer cho real-time indexing
-- Media Service — basic image upload + presigned URL
+- Kafka consumer — search index sync pipeline
+  - Step 1: Consume `restaurant.updated` / `menu_item.created` / `menu_item.updated` events
+  - Step 2: Fetch full denormalized document (restaurant + menu + avg rating)
+  - Step 3: Transform to Elasticsearch index schema
+  - Step 4: Upsert document into Elasticsearch (idempotent by entity ID)
+  - Step 5: Invalidate Redis cache keys for affected search queries
+  - Consumer group configuration (exactly-once semantics)
+  - Alternative: CDC via Debezium — read PostgreSQL WAL stream instead of application-emitted events, eliminates dual-write risk
+- Media Service — image upload pipeline (BullMQ)
+  - Step 1: Accept upload → store original in MinIO/S3, enqueue job
+  - Step 2: Validate (MIME type, file size, dimensions)
+  - Step 3: Resize to multiple resolutions (thumbnail 150px, medium 600px, full 1200px)
+  - Step 4: Compress + convert to WebP
+  - Step 5: Upload all versions to MinIO/S3
+  - Step 6: Update DB record with CDN URLs per resolution
+  - Presigned URL generation for direct client upload
+  - Real-time upload status updates via WebSocket
+    - On upload: server returns `{ uploadId, wsRoom: "upload:{uploadId}" }`
+    - Worker emits status changes → Redis Pub/Sub → WebSocket Gateway → client
+    - Client subscribes to room and receives per-step progress (e.g. `{ step: "resize", status: "done" }`)
+    - Fallback: `GET /uploads/:id/status` polling if WebSocket disconnects
 - Unit + integration tests
 
 **Frontend (Customer Web):**
@@ -1398,7 +1418,7 @@ Mỗi service expose:
 - Saga Orchestrator class
   - Step 1: CreateOrder
   - Step 2: ValidateRestaurant (check open, items available)
-  - Step 3: ReserveInventory (decrement stock)
+  - Step 3: ReserveInventory (decrement stock) — optimistic locking via `version` column on `inventory` row: UPDATE WHERE version = $current; if 0 rows affected → retry or fail (alternative to Redlock for low-contention writes)
   - Step 4: ProcessPayment (charge customer)
   - Step 5: ConfirmOrder
   - Step 6: AssignDriver
@@ -1407,6 +1427,7 @@ Mỗi service expose:
 - Dead letter queue cho failed saga steps
 - RabbitMQ integration (command bus)
 - Kafka integration (event publishing)
+- `orders` table range partitioning by `created_at` (monthly partitions) — queries scoped to a date range hit only one partition, old partitions can be archived independently
 - Order cancellation flow
 - Re-order endpoint
 - Order history (CQRS read model query)
@@ -1454,6 +1475,20 @@ Mỗi service expose:
 - Invoice generation (PDF via puppeteer/pdfkit)
 - Transaction history API
 - Fraud detection heuristics (velocity check, amount anomaly)
+- Monthly payout batch job (BullMQ + `@Cron`)
+  - Runs on 1st of each month via cron
+  - Distributed lock guard (Redis Redlock): acquire lock `payout:batch:{billingPeriod}` with TTL = 2 hours before doing any work — only one instance proceeds, others exit immediately
+  - Step 1: Query all completed orders in the billing period — chunked in pages of 1000 to avoid loading millions of rows into memory
+    - Checkpoint pattern: persist `{ jobId, lastProcessedOrderId, processedCount }` to Redis after each chunk
+    - On restart/retry: read checkpoint → resume from `lastProcessedOrderId` instead of re-scanning from beginning
+    - Job completes: delete checkpoint from Redis
+  - Step 2: Aggregate earnings per recipient (restaurant, driver) — sum split amounts from `payouts` table
+  - Step 3: Apply payout threshold — skip recipients whose total < minimum payout amount (configurable per recipient type)
+  - Step 4: For each eligible recipient, create a Stripe Connect transfer (idempotency key = `payout:{recipientId}:{billingPeriod}`)
+  - Step 5: Record result in `payouts` table (succeeded / failed)
+  - Step 6: Retry failed transfers with exponential backoff — max 3 attempts before flagging for manual review
+  - Step 7: Generate earnings summary report (PDF) per recipient and store in MinIO
+  - Idempotency gate: check `payouts` row for the billing period before processing — skip if already succeeded (safe to re-run)
 - Unit tests cho payment logic
 - Integration tests (Stripe test mode)
 
@@ -1494,7 +1529,18 @@ Mỗi service expose:
 - SMS notifications (Twilio)
 - Notification preferences API
 - In-app notification history
-- BullMQ job queue cho async notification delivery
+- BullMQ notification delivery pipeline
+  - Step 1: Receive notification event (from RabbitMQ or internal emitter)
+  - Step 2: Resolve user notification preferences (which channels are enabled)
+  - Step 3: Render message template per channel (title, body, deep link)
+  - Step 4: Fan-out — enqueue one child job per enabled channel
+  - Step 5a: Push — send via Firebase Cloud Messaging (FCM)
+  - Step 5b: Email — send via SendGrid with HTML template
+  - Step 5c: SMS — send via Twilio
+  - Step 5d: In-app — write to notification_history table
+  - Step 6: Per-channel retry with exponential backoff (max 3 attempts)
+  - Step 7: Move failed jobs to dead-letter queue, alert on-call
+  - Notification digest mode (batch low-priority notifications, send once per hour)
 - Circuit Breaker implementation (NestJS interceptor)
 - Apply to all inter-service HTTP calls
 - Health dashboard endpoint for circuit states
@@ -1552,6 +1598,8 @@ Mỗi service expose:
 
 **Infrastructure:**
 
+- PostgreSQL read replica setup — primary handles all writes, replica handles read-heavy queries (order history, analytics queries, search fallback); TypeORM datasource routing by operation type
+- Backpressure handling for BullMQ queues — monitor queue depth via Prometheus; trigger worker autoscaling when depth > threshold; producer pauses enqueueing if queue exceeds hard limit (prevent memory blow-up)
 - Distributed tracing setup (OpenTelemetry + Jaeger)
 - Instrument all NestJS services
 - Trace context propagation
@@ -1670,6 +1718,9 @@ Mỗi service expose:
 - Docker images optimized (multi-stage, < 200MB mỗi service)
 - Docker Compose production config (resource limits, restart policies)
 - Environment variable documentation
+- Zero-downtime DB migrations strategy — expand/contract pattern: (1) add new column nullable, (2) deploy code that writes to both old+new, (3) backfill old rows, (4) deploy code that reads from new, (5) drop old column; never lock a large table with a blocking ALTER
+- Blue-green deployment setup — two identical environments (blue=live, green=new); switch traffic at load balancer after green passes health checks; instant rollback by switching back
+- Data archival job — monthly cron that moves `orders` partitions older than 24 months to cold storage (S3 Glacier / cheap object storage), drops the partition from PostgreSQL; archived data still queryable via Athena/S3 Select for audits
 - Database migration scripts
 - Seed data script (demo data)
 - One-command setup (`make setup` hoặc script)

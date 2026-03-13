@@ -11,6 +11,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
@@ -18,7 +19,10 @@ import { Throttle } from '@nestjs/throttler'
 
 import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { CreateRestaurantDto } from './dto/create-restaurant.dto'
+import { OperatingHoursDto } from './dto/operating-hours.dto'
+import { UpdateDayHoursDto } from './dto/update-day-hours.dto'
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto'
+import type { OperatingHours } from './entities/operating-hours.entity'
 import type { Restaurant } from './entities/restaurant.entity'
 import { RestaurantsService } from './restaurants.service'
 
@@ -163,5 +167,44 @@ export class RestaurantsController {
   @ApiResponse({ status: 204 })
   public suspend(@Param('id') id: string, @CurrentUser() user: JwtPayload): Promise<void> {
     return this.service.suspend(id, user.sub)
+  }
+
+  // ─── Operating hours ──────────────────────────────────────────────────────
+
+  @Public()
+  @Get(':id/hours')
+  @ApiOperation({ summary: 'Get operating hours for a restaurant' })
+  @ApiResponse({ status: 200 })
+  public getHours(@Param('id') id: string): Promise<OperatingHours[]> {
+    return this.service.getHours(id)
+  }
+
+  @Put(':id/hours')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles('restaurant_owner', 'admin')
+  @ApiOperation({ summary: 'Replace full week operating hours (owner)' })
+  @ApiResponse({ status: 204 })
+  public updateAllHours(
+    @Param('id') id: string,
+    @Body() dto: { hours: OperatingHoursDto[] },
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.service.updateAllHours(id, dto.hours, user)
+  }
+
+  @Patch(':id/hours/:day')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles('restaurant_owner', 'admin')
+  @ApiOperation({
+    summary: 'Update a single day operating hours (owner). day: MON|TUE|WED|THU|FRI|SAT|SUN',
+  })
+  @ApiResponse({ status: 204 })
+  public updateDayHours(
+    @Param('id') id: string,
+    @Param('day') day: string,
+    @Body() dto: UpdateDayHoursDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<void> {
+    return this.service.updateDayHours(id, day, dto, user)
   }
 }
