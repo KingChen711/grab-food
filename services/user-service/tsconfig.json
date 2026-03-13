@@ -4,6 +4,7 @@
     "outDir": "./dist",
     "rootDir": "../../",
     "paths": {
+      "@grab/nestjs-common": ["../../packages/nestjs-common/src/index.ts"],
       "@grab/types": ["../../packages/types/src/index.ts"],
       "@grab/validators": ["../../packages/validators/src/index.ts"]
     },

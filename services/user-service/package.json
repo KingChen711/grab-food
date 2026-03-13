@@ -18,6 +18,7 @@
     "db:seed": "ts-node src/database/seeds/run-seeds.ts"
   },
   "dependencies": {
+    "@grab/nestjs-common": "workspace:*",
     "@grab/types": "workspace:*",
     "@grab/validators": "workspace:*",
     "@nestjs/cache-manager": "^3.0.0",

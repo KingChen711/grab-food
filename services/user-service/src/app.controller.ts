@@ -1,9 +1,9 @@
+import { Public } from '@grab/nestjs-common'
 import { Controller, Get, Inject } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 
 import { AppService } from './app.service'
-import { Public } from './common/decorators/public.decorator'
 
 @ApiTags('health')
 @Controller()

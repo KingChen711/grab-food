@@ -2,7 +2,7 @@
 
 import { useSearchBoxCore, useSearchSession } from '@mapbox/search-js-react'
 import { MapPin } from 'lucide-react'
-import { useRef, useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export interface PlaceResult {
   fullAddress: string

@@ -1,4 +1,5 @@
-﻿import { Controller, Get } from '@nestjs/common'
+﻿import { Public } from '@grab/nestjs-common'
+import { Controller, Get } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 
@@ -12,12 +13,14 @@ export class AppController {
     private readonly health: HealthCheckService,
   ) {}
 
+  @Public()
   @Get('health')
   @HealthCheck()
   public check(): Promise<unknown> {
     return this.health.check([])
   }
 
+  @Public()
   @Get()
   public getStatus(): { status: string; service: string } {
     return this.appService.getStatus()

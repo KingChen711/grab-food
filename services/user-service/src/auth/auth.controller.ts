@@ -1,3 +1,4 @@
+import { Public } from '@grab/nestjs-common'
 import type { AuthTokens } from '@grab/types'
 import {
   Body,
@@ -14,7 +15,6 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { Throttle } from '@nestjs/throttler'
 
 import { CurrentUser } from '../common/decorators/current-user.decorator'
-import { Public } from '../common/decorators/public.decorator'
 import type { User } from '../users/entities/user.entity'
 import { AuthService } from './auth.service'
 import { ForgotPasswordDto, GoogleVerifyDto, ResetPasswordDto } from './dto/google-verify.dto'
