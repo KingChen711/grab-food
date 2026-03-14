@@ -1,5 +1,7 @@
-﻿import { Module } from '@nestjs/common'
+﻿import { HttpExceptionFilter, TransformInterceptor } from '@grab/nestjs-common'
+import { ClassSerializerInterceptor, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
 import { TerminusModule } from '@nestjs/terminus'
 
 import { AppController } from './app.controller'
@@ -14,6 +16,11 @@ import { AppService } from './app.service'
     TerminusModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
+  ],
 })
 export class AppModule {}

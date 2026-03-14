@@ -39,6 +39,8 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('api/docs', app, document)
 
+  app.enableShutdownHooks()
+
   const port = process.env.PORT ?? 3000
   await app.listen(port)
 

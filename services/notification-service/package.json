@@ -15,6 +15,7 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "@grab/nestjs-common": "workspace:*",
     "@grab/types": "workspace:*",
     "@nestjs/bull": "^11.0.0",
     "@nestjs/common": "^11.0.0",

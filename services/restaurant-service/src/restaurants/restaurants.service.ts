@@ -2,7 +2,7 @@ import type { JwtPayload, RestaurantStatus } from '@grab/types'
 import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { InjectRepository } from '@nestjs/typeorm'
-import { FindOptionsWhere, ILike, Repository } from 'typeorm'
+import { DataSource, FindOptionsWhere, ILike, Repository } from 'typeorm'
 
 import type { CreateRestaurantDto } from './dto/create-restaurant.dto'
 import type { UpdateRestaurantDto } from './dto/update-restaurant.dto'
@@ -52,50 +52,55 @@ export class RestaurantsService {
     @InjectRepository(OperatingHours)
     private readonly hoursRepo: Repository<OperatingHours>,
     private readonly eventEmitter: EventEmitter2,
+    private readonly dataSource: DataSource,
   ) {}
 
   public async create(dto: CreateRestaurantDto, owner: JwtPayload): Promise<Restaurant> {
     const slug = await uniqueSlug(dto.name, this.restaurantRepo)
 
-    const restaurant = this.restaurantRepo.create({
-      ownerId: owner.sub,
-      name: dto.name,
-      slug,
-      description: dto.description ?? null,
-      coverImageUrl: dto.coverImageUrl ?? null,
-      logoUrl: dto.logoUrl ?? null,
-      fullAddress: dto.fullAddress,
-      city: dto.city,
-      country: dto.country,
-      lat: dto.lat,
-      lng: dto.lng,
-      phone: dto.phone,
-      cuisineTypes: dto.cuisineTypes,
-      priceRange: dto.priceRange,
-      minOrderAmount: dto.minOrderAmount ?? 0,
-      deliveryFee: dto.deliveryFee ?? 0,
-      status: 'pending',
+    const savedId = await this.dataSource.transaction(async (manager) => {
+      const restaurant = manager.create(Restaurant, {
+        ownerId: owner.sub,
+        name: dto.name,
+        slug,
+        description: dto.description ?? null,
+        coverImageUrl: dto.coverImageUrl ?? null,
+        logoUrl: dto.logoUrl ?? null,
+        fullAddress: dto.fullAddress,
+        city: dto.city,
+        country: dto.country,
+        lat: dto.lat,
+        lng: dto.lng,
+        phone: dto.phone,
+        cuisineTypes: dto.cuisineTypes,
+        priceRange: dto.priceRange,
+        minOrderAmount: dto.minOrderAmount ?? 0,
+        deliveryFee: dto.deliveryFee ?? 0,
+        status: 'pending',
+      })
+
+      const saved = await manager.save(restaurant)
+
+      if (dto.operatingHours?.length) {
+        const hours = dto.operatingHours.map((h) =>
+          manager.create(OperatingHours, {
+            restaurantId: saved.id,
+            dayOfWeek: h.dayOfWeek,
+            openTime: h.openTime ?? '09:00',
+            closeTime: h.closeTime ?? '22:00',
+            isClosed: h.isClosed ?? false,
+          }),
+        )
+        await manager.save(hours)
+      }
+
+      return saved.id
     })
 
-    const saved = await this.restaurantRepo.save(restaurant)
+    this.logger.log(`Restaurant created: ${savedId} by owner ${owner.sub}`)
+    this.eventEmitter.emit('restaurant.created', { restaurantId: savedId, ownerId: owner.sub })
 
-    if (dto.operatingHours?.length) {
-      const hours = dto.operatingHours.map((h) =>
-        this.hoursRepo.create({
-          restaurantId: saved.id,
-          dayOfWeek: h.dayOfWeek,
-          openTime: h.openTime ?? '09:00',
-          closeTime: h.closeTime ?? '22:00',
-          isClosed: h.isClosed ?? false,
-        }),
-      )
-      await this.hoursRepo.save(hours)
-    }
-
-    this.logger.log(`Restaurant created: ${saved.id} (${saved.name}) by owner ${owner.sub}`)
-    this.eventEmitter.emit('restaurant.created', { restaurantId: saved.id, ownerId: owner.sub })
-
-    return this.findById(saved.id)
+    return this.findById(savedId)
   }
 
   public async findAll(options: RestaurantListOptions = {}): Promise<[Restaurant[], number]> {

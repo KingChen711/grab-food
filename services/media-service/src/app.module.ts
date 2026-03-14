@@ -1,5 +1,7 @@
-import { Module } from '@nestjs/common'
+import { HttpExceptionFilter, TransformInterceptor } from '@grab/nestjs-common'
+import { ClassSerializerInterceptor, Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
 import { TerminusModule } from '@nestjs/terminus'
 import { TypeOrmModule } from '@nestjs/typeorm'
 
@@ -35,6 +37,11 @@ import { UploadModule } from './upload/upload.module'
     UploadModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
+  ],
 })
 export class AppModule {}

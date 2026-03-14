@@ -120,6 +120,10 @@ export class UsersRepository {
     return this.addressRepo.find({ where: { user: { id: userId } } })
   }
 
+  public async countAddresses(userId: string): Promise<number> {
+    return this.addressRepo.count({ where: { user: { id: userId } } })
+  }
+
   public async findAddressById(addressId: string, userId: string): Promise<UserAddress | null> {
     return this.addressRepo.findOne({ where: { id: addressId, user: { id: userId } } })
   }

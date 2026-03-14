@@ -17,6 +17,7 @@
     "db:migrate": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts"
   },
   "dependencies": {
+    "@grab/nestjs-common": "workspace:*",
     "@grab/types": "workspace:*",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.0",

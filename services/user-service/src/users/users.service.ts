@@ -114,8 +114,8 @@ export class UsersService {
     if (dto.isDefault) {
       await this.usersRepo.unsetDefaultAddresses(userId)
     } else {
-      const existing = await this.getAddresses(userId)
-      if (existing.length === 0) {
+      const count = await this.usersRepo.countAddresses(userId)
+      if (count === 0) {
         dto.isDefault = true
       }
     }

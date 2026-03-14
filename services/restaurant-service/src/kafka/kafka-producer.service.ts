@@ -6,7 +6,7 @@ import { Kafka, type Producer } from 'kafkajs'
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(KafkaProducerService.name)
   private readonly producer: Producer
-  private connected = false
+  public connected = false
 
   constructor(private readonly config: ConfigService) {
     const kafka = new Kafka({
@@ -33,7 +33,10 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   }
 
   public async publish(topic: string, message: object): Promise<void> {
-    if (!this.connected) return
+    if (!this.connected) {
+      this.logger.warn(`Kafka not connected, skipping publish to ${topic}`)
+      return
+    }
 
     try {
       await this.producer.send({

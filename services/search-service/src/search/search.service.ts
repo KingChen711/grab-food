@@ -1,28 +1,27 @@
 import { Client } from '@elastic/elasticsearch'
 import type { SortCombinations } from '@elastic/elasticsearch/lib/api/types'
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 
 import type { AutocompleteDto } from './dto/autocomplete.dto'
 import type { SearchMenuItemsDto } from './dto/search-menu-items.dto'
 import type { SearchRestaurantsDto } from './dto/search-restaurants.dto'
 
+export const ELASTICSEARCH_CLIENT = 'ELASTICSEARCH_CLIENT'
 export const RESTAURANTS_INDEX = 'restaurants'
 export const MENU_ITEMS_INDEX = 'menu_items'
 
 @Injectable()
-export class SearchService implements OnModuleInit {
+export class SearchService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(SearchService.name)
-  public readonly client: Client
 
-  constructor(private readonly config: ConfigService) {
-    this.client = new Client({
-      node: config.getOrThrow<string>('elasticsearch.node'),
-    })
-  }
+  constructor(@Inject(ELASTICSEARCH_CLIENT) public readonly client: Client) {}
 
   public async onModuleInit(): Promise<void> {
     await this.ensureIndices()
+  }
+
+  public async onModuleDestroy(): Promise<void> {
+    await this.client.close()
   }
 
   // ── Search ────────────────────────────────────────────────────────────────

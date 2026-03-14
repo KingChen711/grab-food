@@ -1456,6 +1456,11 @@ Mỗi service expose:
 
 **Deliverables**: Full order flow from cart → checkout → payment → confirmation. CQRS + Event Sourcing working.
 
+**Integration Notes (pre-Phase 3 checklist):**
+
+- **Kafka DLQ for restaurant→search pipeline** — the existing `KafkaProducerService` in restaurant-service silently drops events on send failure (logs the error but does not retry or enqueue to a dead-letter topic). The search-service Kafka consumer has no DLQ either. When building the order saga in Phase 3, add a shared DLQ pattern: on producer send failure, write to a `{topic}.dlq` topic; consumer catches deserialization/processing errors and publishes to `{topic}.consumer.dlq`. Both sides need retry with exponential backoff before DLQ.
+- **Search index out-of-sync risk** — because the restaurant→search pipeline has no guaranteed delivery today, Elasticsearch may miss events during Kafka downtime. Phase 3 is the right time to harden this alongside the order saga DLQ work; alternatively evaluate Debezium CDC (already noted in Phase 2 scope) as a safer alternative to application-level dual-write.
+
 ---
 
 ### Phase 4: Payment Service + Stripe (Tuần 11-12)
@@ -1575,6 +1580,11 @@ Mỗi service expose:
 
 **Deliverables**: Full delivery flow. Real-time tracking on map. Push/email/SMS notifications.
 
+**Integration Notes (pre-Phase 5 checklist):**
+
+- **Circuit Breaker not yet applied** — the scope calls for a Circuit Breaker NestJS interceptor in Phase 5, to wrap all inter-service HTTP calls. As of Phase 2 completion, no service uses a circuit breaker. When implementing Phase 5, apply it to every `HttpService`/`ClientProxy` call across all services, not just delivery/notification. Start with the highest-traffic paths: restaurant-service → media-service image URL updates, and any user-service calls from the gateway.
+- **OTP notification not wired** — user-service generates OTP codes for email/phone verification and password reset, but sends them via an in-process `EventEmitter` listener. When notification-service is built in Phase 5, wire these events through the notification pipeline (BullMQ → FCM/SendGrid/Twilio) instead of the current in-process handler.
+
 ---
 
 ### Phase 6: API Gateway + Advanced Infrastructure (Tuần 16-17)
@@ -1619,6 +1629,23 @@ Mỗi service expose:
 - Health check endpoints for all services (/health, /health/ready)
 
 **Deliverables**: Single entry point. Full observability. Resilience patterns working.
+
+**Integration Notes (pre-Phase 6 checklist):**
+
+When integrating existing services with the API Gateway, keep in mind:
+
+- **Remove per-service auth guards** — `JwtAuthGuard` in restaurant-service and user-service can be removed from `APP_GUARD` once the gateway validates JWT and forwards a trusted `X-User-Id` / `X-User-Role` header downstream. Services should trust internal identity headers instead of re-validating the token.
+- **Remove per-service rate limiting** — `ThrottlerGuard` in each service can be replaced by gateway-level token bucket (per-user + per-IP + per-endpoint). Keep per-service limits only as a last-resort backstop for internal abuse.
+- **Internal network trust** — After the gateway is live, services should only accept requests from the gateway (private VPC / mTLS). Add a shared `X-Internal-Secret` header check or mTLS to block direct external access to service ports.
+- **JWT secret consolidation** — All services currently share `JWT_ACCESS_SECRET` to do stateless validation. In Phase 6, only the gateway needs the secret. Services receive decoded payload via trusted header — remove JWT strategy from restaurant-service and other downstream services.
+- **Token blacklist gap** — restaurant-service and other services do stateless JWT validation and never check the blacklist. The gateway must check the blacklist (via user-service Redis) on every request, closing the 15-minute logout gap.
+- **Correlation ID propagation** — Gateway injects `X-Correlation-ID` on every request. Each service must read and forward it in logs and any downstream calls. Prepare a `CorrelationMiddleware` in each service before Phase 6.
+- **WebSocket proxy** — media-service WebSocket (`/uploads` namespace) must be proxied through the gateway. Use sticky sessions (consistent hashing by `socket.id`) or the `@socket.io/redis-adapter` at gateway level to avoid routing issues.
+- **Health check aggregation** — Gateway's `/health` will aggregate all service health endpoints. Ensure each service's `/health` checks real dependencies (DB, Kafka, ES) — the current empty `[]` will make the gateway think all dependencies are healthy even when they're down.
+- **API versioning** — The gateway is the right place to add `/v1/` prefix routing. Individual services keep their current paths; the gateway rewrites the prefix before proxying.
+- **media-service upload.completed event** — When Phase 6 gateway is in place, the client should no longer need to manually `PATCH /restaurants/{id}/cover-image`. Instead, media-service should publish a `upload.completed` Kafka event and restaurant-service should consume it to auto-update image URLs. Plan this integration in Phase 6.
+- **Caching gap** — `cache-manager` and `@nestjs/cache-manager` are installed in restaurant-service, user-service, search-service (and promotion/recommendation shells), but no `CacheModule` is registered and no `@Cacheable()` / `CacheInterceptor` is applied anywhere. Phase 6 is the right time to add gateway-level response caching (Redis, GET requests) and optionally service-level cache for hot reads (restaurant detail, search results). Ensure cache invalidation is wired to the relevant Kafka events.
+- **JWT strategy DB lookup on every request** — user-service's `JwtStrategy.validate()` fetches the full `User` entity from PostgreSQL on every authenticated request. Once the gateway validates the token and forwards decoded claims as trusted headers (`X-User-Id`, `X-User-Role`), user-service can switch to a lightweight header-based identity resolver and eliminate the per-request DB lookup.
 
 ---
 

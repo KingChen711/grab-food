@@ -34,6 +34,7 @@
     "class-transformer": "^0.5.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "@grab/nestjs-common": "workspace:*",
     "@grab/types": "workspace:*",
     "@grab/validators": "workspace:*"
   },

@@ -8,5 +8,6 @@ import { RestaurantEventsListener } from './restaurant-events.listener'
 @Module({
   imports: [RestaurantsModule, MenuModule],
   providers: [KafkaProducerService, RestaurantEventsListener],
+  exports: [KafkaProducerService],
 })
 export class KafkaModule {}

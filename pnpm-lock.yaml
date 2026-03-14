@@ -769,6 +769,9 @@ importers:
 
   services/media-service:
     dependencies:
+      '@grab/nestjs-common':
+        specifier: workspace:*
+        version: link:../../packages/nestjs-common
       '@grab/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -1538,6 +1541,9 @@ importers:
       '@elastic/elasticsearch':
         specifier: ^8.17.0
         version: 8.19.1
+      '@grab/nestjs-common':
+        specifier: workspace:*
+        version: link:../../packages/nestjs-common
       '@grab/types':
         specifier: workspace:*
         version: link:../../packages/types
