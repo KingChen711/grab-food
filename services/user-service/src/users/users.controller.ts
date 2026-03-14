@@ -1,3 +1,4 @@
+import { CurrentUser, JwtAuthGuard } from '@grab/nestjs-common'
 import {
   Body,
   Controller,
@@ -13,8 +14,6 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { CreateAddressDto } from './dto/create-address.dto'
 import { UpdateAddressDto } from './dto/update-address.dto'
 import { UpdateProfileDto } from './dto/update-profile.dto'

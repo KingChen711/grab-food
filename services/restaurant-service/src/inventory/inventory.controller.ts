@@ -1,9 +1,8 @@
-import { Roles } from '@grab/nestjs-common'
+import { CurrentUser, Roles } from '@grab/nestjs-common'
 import type { JwtPayload } from '@grab/types'
 import { Body, Controller, Get, Inject, Param, Put } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
-import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { RestaurantsService } from '../restaurants/restaurants.service'
 import { UpsertInventoryDto } from './dto/upsert-inventory.dto'
 import type { Inventory } from './entities/inventory.entity'

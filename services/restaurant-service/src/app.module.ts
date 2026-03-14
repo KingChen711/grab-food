@@ -1,4 +1,9 @@
-import { HttpExceptionFilter, RolesGuard, TransformInterceptor } from '@grab/nestjs-common'
+import {
+  HttpExceptionFilter,
+  JwtAuthGuard,
+  RolesGuard,
+  TransformInterceptor,
+} from '@grab/nestjs-common'
 import { ClassSerializerInterceptor, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
@@ -9,7 +14,6 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AuthModule } from './auth/auth.module'
-import { JwtAuthGuard } from './common/guards/jwt-auth.guard'
 import { databaseConfig } from './config/database.config'
 import { jwtConfig } from './config/jwt.config'
 import { redisConfig } from './config/redis.config'

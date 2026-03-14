@@ -1,5 +1,5 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
-import { Reflector } from '@nestjs/core'
+import type { Reflector } from '@nestjs/core'
 export declare class RolesGuard implements CanActivate {
   private readonly reflector
   constructor(reflector: Reflector)

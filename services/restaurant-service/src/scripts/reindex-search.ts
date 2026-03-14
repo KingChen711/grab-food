@@ -28,6 +28,7 @@ import { MenuItemAddon } from '../menu/entities/menu-item-addon.entity'
 import { MenuItemVariant } from '../menu/entities/menu-item-variant.entity'
 import { OperatingHours } from '../restaurants/entities/operating-hours.entity'
 import { Restaurant } from '../restaurants/entities/restaurant.entity'
+import { RestaurantReview } from '../reviews/entities/restaurant-review.entity'
 
 const RESTAURANT_EVENTS_TOPIC = 'restaurant.events'
 const SEARCH_INDEXING_TOPIC = 'search.indexing'
@@ -42,7 +43,15 @@ const dataSource = new DataSource({
   username: process.env.POSTGRES_USER ?? 'grab_user',
   password: process.env.POSTGRES_PASSWORD ?? 'grab_password',
   database: process.env.RESTAURANT_SERVICE_DB ?? 'grab_restaurants',
-  entities: [Restaurant, OperatingHours, MenuCategory, MenuItem, MenuItemVariant, MenuItemAddon],
+  entities: [
+    Restaurant,
+    OperatingHours,
+    MenuCategory,
+    MenuItem,
+    MenuItemVariant,
+    MenuItemAddon,
+    RestaurantReview,
+  ],
   synchronize: false,
 })
 

@@ -1,4 +1,4 @@
-import { Public, Roles } from '@grab/nestjs-common'
+import { CurrentUser, Public, Roles } from '@grab/nestjs-common'
 import type { JwtPayload } from '@grab/types'
 import {
   Body,
@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
-import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { CreateMenuItemDto } from './dto/create-menu-item.dto'
 import { UpdateCategoryDto } from './dto/update-category.dto'

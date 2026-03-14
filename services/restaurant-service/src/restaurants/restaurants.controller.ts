@@ -1,4 +1,4 @@
-import { Public, Roles } from '@grab/nestjs-common'
+import { CurrentUser, Public, Roles } from '@grab/nestjs-common'
 import type { JwtPayload } from '@grab/types'
 import {
   Body,
@@ -17,7 +17,6 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 
-import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { CreateRestaurantDto } from './dto/create-restaurant.dto'
 import { OperatingHoursDto } from './dto/operating-hours.dto'
 import { UpdateDayHoursDto } from './dto/update-day-hours.dto'

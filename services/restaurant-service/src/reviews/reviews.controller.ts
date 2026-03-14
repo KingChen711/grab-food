@@ -1,4 +1,4 @@
-import { Public, Roles } from '@grab/nestjs-common'
+import { CurrentUser, Public, Roles } from '@grab/nestjs-common'
 import type { JwtPayload } from '@grab/types'
 import {
   Body,
@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 
-import { CurrentUser } from '../common/decorators/current-user.decorator'
 import { CreateReviewDto, ReplyReviewDto } from './dto/create-review.dto'
 import type { RestaurantReview } from './entities/restaurant-review.entity'
 import { ReviewsService } from './reviews.service'

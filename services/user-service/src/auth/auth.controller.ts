@@ -1,4 +1,4 @@
-import { Public } from '@grab/nestjs-common'
+import { CurrentUser, JwtAuthGuard, Public } from '@grab/nestjs-common'
 import type { AuthTokens } from '@grab/types'
 import {
   Body,
@@ -14,14 +14,12 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 
-import { CurrentUser } from '../common/decorators/current-user.decorator'
 import type { User } from '../users/entities/user.entity'
 import { AuthService } from './auth.service'
 import { ForgotPasswordDto, GoogleVerifyDto, ResetPasswordDto } from './dto/google-verify.dto'
 import { LoginWithEmailDto, LoginWithPhoneDto } from './dto/login.dto'
 import { RefreshTokenDto } from './dto/refresh-token.dto'
 import { RegisterWithEmailDto, RegisterWithPhoneDto } from './dto/register.dto'
-import { JwtAuthGuard } from './guards/jwt-auth.guard'
 
 @ApiTags('auth')
 @Controller('auth')
