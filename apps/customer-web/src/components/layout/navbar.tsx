@@ -51,10 +51,14 @@ export function Navbar() {
           {totalItems > 0 && (
             <Link
               href="/cart"
+              aria-label={`Cart (${totalItems} item${totalItems !== 1 ? 's' : ''})`}
               className="relative flex h-9 w-9 items-center justify-center rounded-full border bg-card hover:bg-accent"
             >
-              <ShoppingCart className="h-4 w-4" />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground">
+              <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+              <span
+                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground"
+                aria-hidden="true"
+              >
                 {totalItems}
               </span>
             </Link>

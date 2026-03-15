@@ -11,7 +11,14 @@ import importPlugin from 'eslint-plugin-import'
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', '**/.next/**', '**/build/**'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+      '**/.next/**',
+      '**/build/**',
+      '**/*.d.ts',
+    ],
   },
   {
     files: ['**/*.{ts,tsx}'],

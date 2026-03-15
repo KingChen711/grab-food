@@ -84,7 +84,9 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold">
           {getGreeting()}, {restaurant?.name ?? 'Restaurant'}
         </h2>
-        <p className="text-muted-foreground">{formatDate(new Date())}</p>
+        <p className="text-muted-foreground" suppressHydrationWarning>
+          {formatDate(new Date())}
+        </p>
       </div>
 
       {/* Stat cards */}

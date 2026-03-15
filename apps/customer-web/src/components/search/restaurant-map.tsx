@@ -3,8 +3,7 @@
 import 'leaflet/dist/leaflet.css'
 
 import L from 'leaflet'
-import Link from 'next/link'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import type { RestaurantResult } from '@/lib/api/search.api'
 
@@ -35,8 +34,9 @@ export function RestaurantMap({ restaurants, userLat, userLng }: RestaurantMapPr
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
 
-  const located = restaurants.filter(
-    (r) => r.location?.lat !== undefined && r.location?.lon !== undefined,
+  const located = useMemo(
+    () => restaurants.filter((r) => r.location?.lat !== undefined && r.location?.lon !== undefined),
+    [restaurants],
   )
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export function RestaurantMap({ restaurants, userLat, userLng }: RestaurantMapPr
       map.remove()
       mapRef.current = null
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   // Sync markers when restaurants change
   useEffect(() => {
@@ -102,9 +102,9 @@ export function RestaurantMap({ restaurants, userLat, userLng }: RestaurantMapPr
         <div style="min-width:160px">
           <p style="font-weight:600;margin:0 0 2px">${r.name}</p>
           <p style="font-size:12px;color:#64748b;margin:0 0 4px">${r.city}</p>
-          <p style="font-size:12px;margin:0 0 6px">${r.isOpen ? '🟢 Open' : '🔴 Closed'} · ⭐ ${r.avgRating.toFixed(1)}</p>
-          <a href="/restaurants/${r.slug}" style="font-size:12px;color:#f97316;text-decoration:none;font-weight:500">
-            View menu →
+          <p style="font-size:12px;margin:0 0 6px"><span style="color:${r.isOpen ? '#16a34a' : '#dc2626'};font-weight:500">${r.isOpen ? 'Open' : 'Closed'}</span> &middot; ${r.avgRating.toFixed(1)} stars</p>
+          <a href="/restaurant/${r.slug}" style="font-size:12px;color:#f97316;text-decoration:none;font-weight:500">
+            View menu &rarr;
           </a>
         </div>
       `)

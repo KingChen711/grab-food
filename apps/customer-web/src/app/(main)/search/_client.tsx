@@ -110,8 +110,9 @@ export function SearchPageClient() {
           onClick={handleGeolocate}
           loading={geoLoading}
           title="Use my location"
+          aria-label="Use my location"
         >
-          <MapPin className="h-4 w-4" />
+          <MapPin className="h-4 w-4" aria-hidden="true" />
         </Button>
       </form>
 
@@ -159,8 +160,10 @@ export function SearchPageClient() {
                       : 'bg-card hover:bg-accent',
                   ].join(' ')}
                   title="Grid view"
+                  aria-label="Grid view"
+                  aria-pressed={viewMode === 'grid'}
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  <LayoutGrid className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <button
                   onClick={() => setViewMode('map')}
@@ -171,8 +174,10 @@ export function SearchPageClient() {
                       : 'bg-card hover:bg-accent',
                   ].join(' ')}
                   title="Map view"
+                  aria-label="Map view"
+                  aria-pressed={viewMode === 'map'}
                 >
-                  <Map className="h-4 w-4" />
+                  <Map className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -183,8 +188,8 @@ export function SearchPageClient() {
             <div className="mb-4 rounded-xl border bg-card p-4 lg:hidden">
               <div className="mb-3 flex items-center justify-between">
                 <span className="font-semibold">Filters</span>
-                <button onClick={() => setShowFilters(false)}>
-                  <X className="h-4 w-4" />
+                <button onClick={() => setShowFilters(false)} aria-label="Close filters">
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
               <SearchFilters searchParams={searchParams} onUpdate={updateParam} />

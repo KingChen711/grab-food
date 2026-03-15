@@ -89,7 +89,6 @@ export function ImageUploader({
 
       {value ? (
         <div className="relative inline-block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="Preview" className="h-32 w-full rounded-md border object-cover" />
           <div className="absolute right-1 top-1 flex gap-1">
             <button

@@ -1,14 +1,4 @@
-import type { Metadata } from 'next'
-import { Suspense } from 'react'
-
-import { SearchPageClient } from './_client'
-
-export const metadata: Metadata = {
-  title: 'Search Restaurants',
-  description: 'Find restaurants near you',
-}
-
-function SearchPageFallback() {
+export default function SearchLoading() {
   return (
     <div className="container py-6">
       <div className="mb-6 flex gap-2">
@@ -22,13 +12,5 @@ function SearchPageFallback() {
         ))}
       </div>
     </div>
-  )
-}
-
-export default function SearchPage() {
-  return (
-    <Suspense fallback={<SearchPageFallback />}>
-      <SearchPageClient />
-    </Suspense>
   )
 }

@@ -1,5 +1,5 @@
 import { Badge, Rating } from '@grab/ui'
-import { Clock, Truck } from 'lucide-react'
+import { Clock, Truck, UtensilsCrossed } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -28,7 +28,9 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-4xl">🍽️</div>
+          <div className="flex h-full items-center justify-center">
+            <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40" aria-hidden="true" />
+          </div>
         )}
         {!restaurant.isOpen && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">

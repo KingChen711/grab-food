@@ -16,7 +16,7 @@ export function PopularRestaurants() {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold">Popular near you</h2>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/search">View all →</Link>
+          <Link href="/search">View all</Link>
         </Button>
       </div>
 

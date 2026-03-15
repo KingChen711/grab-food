@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge } from '@grab/ui'
-import { Plus } from 'lucide-react'
+import { Flame, Plus, Utensils } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
 
@@ -42,7 +42,12 @@ export function MenuItemCard({ item, restaurant }: MenuItemCardProps) {
             {item.calories && (
               <span className="text-xs text-muted-foreground">{item.calories} cal</span>
             )}
-            {item.isSpicy && <span className="text-xs">🌶️</span>}
+            {item.isSpicy && (
+              <span className="flex items-center gap-0.5 rounded-full bg-red-100 px-1.5 py-0.5 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                <Flame className="h-3 w-3" aria-hidden="true" />
+                Spicy
+              </span>
+            )}
             {item.isVegan && (
               <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-400">
                 Vegan
@@ -68,7 +73,9 @@ export function MenuItemCard({ item, restaurant }: MenuItemCardProps) {
                 sizes="96px"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-3xl">🍴</div>
+              <div className="flex h-full items-center justify-center">
+                <Utensils className="h-8 w-8 text-muted-foreground/30" aria-hidden="true" />
+              </div>
             )}
           </div>
           {item.isAvailable && (

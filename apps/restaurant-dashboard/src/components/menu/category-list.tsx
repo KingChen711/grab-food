@@ -1,18 +1,18 @@
 'use client'
 
-import type { MenuCategory } from '@grab/types'
-import { Button } from '@grab/ui'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import {
+  closestCenter,
   DndContext,
   DragOverlay,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import type { MenuCategory } from '@grab/types'
+import { Button } from '@grab/ui'
 import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -28,21 +28,13 @@ interface CategoryListProps {
 
 interface SortableItemProps {
   category: MenuCategory
-  index: number
   isSelected: boolean
   onSelect: (id: string) => void
   onEdit: (category: MenuCategory) => void
   onDelete: (category: MenuCategory) => void
 }
 
-function SortableItem({
-  category,
-  index,
-  isSelected,
-  onSelect,
-  onEdit,
-  onDelete,
-}: SortableItemProps) {
+function SortableItem({ category, isSelected, onSelect, onEdit, onDelete }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: category.id,
   })
@@ -177,11 +169,10 @@ export function CategoryList({
       >
         <SortableContext items={categories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
           <ul className="flex-1 overflow-y-auto">
-            {categories.map((category, index) => (
+            {categories.map((category) => (
               <SortableItem
                 key={category.id}
                 category={category}
-                index={index}
                 isSelected={category.id === selectedId}
                 onSelect={onSelect}
                 onEdit={onEdit}

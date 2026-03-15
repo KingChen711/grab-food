@@ -1,5 +1,5 @@
 import { Badge, Rating } from '@grab/ui'
-import { Clock, MapPin, Phone, Truck } from 'lucide-react'
+import { Clock, MapPin, Phone, Truck, UtensilsCrossed } from 'lucide-react'
 import Image from 'next/image'
 
 import type { Restaurant } from '@/lib/api/restaurant.api'
@@ -25,7 +25,9 @@ export function RestaurantHeader({ restaurant }: RestaurantHeaderProps) {
             sizes="100vw"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-6xl">🍽️</div>
+          <div className="flex h-full items-center justify-center">
+            <UtensilsCrossed className="h-16 w-16 text-muted-foreground/30" aria-hidden="true" />
+          </div>
         )}
         {!restaurant.isOpen && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
@@ -44,7 +46,9 @@ export function RestaurantHeader({ restaurant }: RestaurantHeaderProps) {
             {restaurant.logoUrl ? (
               <Image src={restaurant.logoUrl} alt={restaurant.name} fill className="object-cover" />
             ) : (
-              <div className="flex h-full items-center justify-center text-3xl">🍽️</div>
+              <div className="flex h-full items-center justify-center">
+                <UtensilsCrossed className="h-8 w-8 text-muted-foreground/40" aria-hidden="true" />
+              </div>
             )}
           </div>
 

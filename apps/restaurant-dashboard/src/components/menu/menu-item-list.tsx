@@ -2,7 +2,8 @@
 
 import type { MenuItem } from '@grab/types'
 import { Button } from '@grab/ui'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, UtensilsCrossed } from 'lucide-react'
+import Image from 'next/image'
 
 interface MenuItemListProps {
   items: MenuItem[]
@@ -43,11 +44,22 @@ export function MenuItemList({
         {items.map((item) => (
           <li key={item.id} className="group flex items-center gap-4 px-4 py-3">
             {/* Image placeholder */}
-            <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+            <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md bg-muted">
               {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                <Image
+                  src={item.imageUrl}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-2xl">🍽️</div>
+                <div className="flex h-full w-full items-center justify-center">
+                  <UtensilsCrossed
+                    className="h-6 w-6 text-muted-foreground/30"
+                    aria-hidden="true"
+                  />
+                </div>
               )}
             </div>
 

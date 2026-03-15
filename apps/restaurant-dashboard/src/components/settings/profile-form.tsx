@@ -155,24 +155,46 @@ export function ProfileForm({ restaurant }: ProfileFormProps) {
       {/* Profile details */}
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Restaurant Name *</label>
-          <Input error={!!errors.name} {...register('name')} />
-          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+          <label htmlFor="profile-name" className="text-sm font-medium">
+            Restaurant Name *
+          </label>
+          <Input id="profile-name" error={!!errors.name} {...register('name')} />
+          {errors.name && (
+            <p className="text-xs text-destructive" role="alert">
+              {errors.name.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Description</label>
-          <Input placeholder="Tell customers about your restaurant" {...register('description')} />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Phone</label>
-          <Input type="tel" placeholder="+1 555 000 0000" {...register('phone')} />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Cuisine Types</label>
+          <label htmlFor="profile-description" className="text-sm font-medium">
+            Description
+          </label>
           <Input
+            id="profile-description"
+            placeholder="Tell customers about your restaurant"
+            {...register('description')}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="profile-phone" className="text-sm font-medium">
+            Phone
+          </label>
+          <Input
+            id="profile-phone"
+            type="tel"
+            placeholder="+1 555 000 0000"
+            {...register('phone')}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="profile-cuisine" className="text-sm font-medium">
+            Cuisine Types
+          </label>
+          <Input
+            id="profile-cuisine"
             placeholder="e.g. Italian, Pizza, Pasta (comma-separated)"
             {...register('cuisineTypes')}
           />
@@ -192,8 +214,11 @@ export function ProfileForm({ restaurant }: ProfileFormProps) {
 
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Price Range</label>
+            <label htmlFor="profile-price-range" className="text-sm font-medium">
+              Price Range
+            </label>
             <select
+              id="profile-price-range"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               {...register('priceRange')}
             >
@@ -208,8 +233,11 @@ export function ProfileForm({ restaurant }: ProfileFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Min Order</label>
+            <label htmlFor="profile-min-order" className="text-sm font-medium">
+              Min Order
+            </label>
             <Input
+              id="profile-min-order"
               type="number"
               step="0.01"
               min="0"
@@ -222,8 +250,11 @@ export function ProfileForm({ restaurant }: ProfileFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Delivery Fee</label>
+            <label htmlFor="profile-delivery-fee" className="text-sm font-medium">
+              Delivery Fee
+            </label>
             <Input
+              id="profile-delivery-fee"
               type="number"
               step="0.01"
               min="0"

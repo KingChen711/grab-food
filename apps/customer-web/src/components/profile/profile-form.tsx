@@ -58,7 +58,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {user.profile?.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={user.profile.avatarUrl}
                 alt={user.profile.fullName ?? 'Avatar'}

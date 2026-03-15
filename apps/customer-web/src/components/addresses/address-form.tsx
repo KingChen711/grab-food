@@ -70,8 +70,8 @@ export function AddressForm({ open, onClose, address }: AddressFormProps) {
   return (
     <Dialog.Root open={open} onOpenChange={(v: boolean) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 animate-fade-in bg-black/50 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 animate-fade-in rounded-xl bg-background p-6 shadow-floating">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Content className="fixed inset-0 z-50 m-auto h-fit w-full max-w-md rounded-xl bg-background p-6 shadow-floating duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <div className="flex items-center justify-between">
             <Dialog.Title className="text-lg font-semibold">
               {isEditing ? 'Edit address' : 'Add new address'}

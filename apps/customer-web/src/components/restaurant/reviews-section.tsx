@@ -66,10 +66,16 @@ export function ReviewsSection({ restaurantId }: ReviewsSectionProps) {
               {review.comment && <p className="mt-2 text-sm">{review.comment}</p>}
 
               {review.images && review.images.length > 0 && (
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex gap-2" aria-label="Review photos">
                   {review.images.slice(0, 3).map((img, i) => (
                     <div key={i} className="relative h-16 w-16 overflow-hidden rounded-lg bg-muted">
-                      <Image src={img} alt="" fill className="object-cover" sizes="64px" />
+                      <Image
+                        src={img}
+                        alt={`Review photo ${i + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
                     </div>
                   ))}
                 </div>
@@ -90,16 +96,18 @@ export function ReviewsSection({ restaurantId }: ReviewsSectionProps) {
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
+                aria-label="Previous page"
                 className="rounded-lg border px-3 py-1.5 text-sm disabled:opacity-40"
               >
                 Previous
               </button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground" aria-live="polite">
                 Page {page} of {totalPages}
               </span>
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}
+                aria-label="Next page"
                 className="rounded-lg border px-3 py-1.5 text-sm disabled:opacity-40"
               >
                 Next
