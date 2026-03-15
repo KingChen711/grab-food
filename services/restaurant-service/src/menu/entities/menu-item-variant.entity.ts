@@ -16,7 +16,14 @@ export class MenuItemVariant {
   @Column({ length: 100 })
   public name: string
 
-  @Column({ name: 'price_adjustment', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'price_adjustment',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public priceAdjustment: number
 
   @Column({ name: 'is_default', default: false })

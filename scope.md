@@ -1400,6 +1400,11 @@ Mỗi service expose:
 
 **Deliverables**: Customer có thể search restaurants, view menus. Restaurant owner có thể manage menu.
 
+**Integration Notes (pre-Phase 3 checklist):**
+
+- **Cart UI deferred to Phase 3** — Menu item modal (variants, addons, quantity selector) is implemented in customer-web but the "Add to cart" action is a no-op until the Cart Service (Redis-backed, stateless) and Zustand cart store are built in Phase 3. The modal already emits a `cartItem` object shape; Phase 3 only needs to wire it to the store.
+- **WebSocket upload progress** — `UploadGateway` is live on `ws://localhost:3010/uploads`. Frontend clients connect directly (bypassing the Next.js HTTP proxy which does not support WS upgrades). `NEXT_PUBLIC_MEDIA_WS_URL=http://localhost:3010` must be set in production. Polling fallback activates automatically if the WS connection fails within 5 s.
+
 ---
 
 ### Phase 3: Order Service + Cart + Checkout (Tuần 8-10)

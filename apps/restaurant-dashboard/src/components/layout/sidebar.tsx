@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@grab/ui'
-import { LayoutDashboard, LogOut, Settings, UtensilsCrossed } from 'lucide-react'
+import { LayoutDashboard, LogOut, Package, Settings, UtensilsCrossed } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/use-auth'
 const navItems = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Menu', href: '/dashboard/menu', icon: UtensilsCrossed },
+  { label: 'Inventory', href: '/dashboard/inventory', icon: Package },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 

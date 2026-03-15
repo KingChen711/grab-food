@@ -31,7 +31,7 @@ let HttpExceptionFilter = (HttpExceptionFilter_1 = class HttpExceptionFilter {
     let status = common_1.HttpStatus.INTERNAL_SERVER_ERROR
     let message = 'Internal server error'
     let code = 'INTERNAL_ERROR'
-    let details
+    let fields
     if (exception instanceof common_1.HttpException) {
       status = exception.getStatus()
       const exResponse = exception.getResponse()
@@ -39,9 +39,14 @@ let HttpExceptionFilter = (HttpExceptionFilter_1 = class HttpExceptionFilter {
         message = exResponse
       } else if (typeof exResponse === 'object' && exResponse !== null) {
         const body = exResponse
-        message = body['message'] ?? exception.message
-        details = Array.isArray(body['message']) ? body['message'] : undefined
-        code = body['error'] ?? this.statusToCode(status)
+        const rawMessage = body['message']
+        if (Array.isArray(rawMessage)) {
+          // class-validator produces an array of "fieldName error description" strings
+          message = 'Validation failed'
+          fields = this.parseValidationMessages(rawMessage)
+        } else {
+          message = rawMessage ?? exception.message
+        }
       }
       code = this.statusToCode(status)
     } else if (exception instanceof Error) {
@@ -49,11 +54,23 @@ let HttpExceptionFilter = (HttpExceptionFilter_1 = class HttpExceptionFilter {
     }
     const errorBody = {
       success: false,
-      error: { code, message, ...(details ? { details } : {}) },
+      error: { code, message, ...(fields ? { fields } : {}) },
       timestamp: new Date().toISOString(),
       path: request.url,
     }
     response.status(status).json(errorBody)
+  }
+  parseValidationMessages(messages) {
+    const result = {}
+    for (const msg of messages) {
+      const spaceIdx = msg.indexOf(' ')
+      if (spaceIdx > 0) {
+        const field = msg.slice(0, spaceIdx)
+        // Keep first error per field (class-validator may emit multiple per field)
+        if (!(field in result)) result[field] = msg.slice(spaceIdx + 1)
+      }
+    }
+    return result
   }
   statusToCode(status) {
     const codes = {

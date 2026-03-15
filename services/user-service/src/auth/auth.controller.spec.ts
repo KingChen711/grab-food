@@ -78,7 +78,7 @@ describe('AuthController', () => {
 
   describe('Google OAuth', () => {
     it('should login with google', async () => {
-      const dto: GoogleVerifyDto = { idToken: 'google-token' }
+      const dto: GoogleVerifyDto = { accessToken: 'google-token' }
       authService.loginWithGoogle.mockResolvedValueOnce({
         accessToken: 'access',
         refreshToken: 'refresh',

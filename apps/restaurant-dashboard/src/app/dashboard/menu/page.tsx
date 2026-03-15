@@ -13,12 +13,17 @@ import { CategoryList } from '@/components/menu/category-list'
 import type { MenuItemFormValues } from '@/components/menu/menu-item-form'
 import { MenuItemForm } from '@/components/menu/menu-item-form'
 import { MenuItemList } from '@/components/menu/menu-item-list'
-import { restaurantQueryKeys, useMyRestaurant, useRestaurantMenu } from '@/hooks/use-restaurant'
+import {
+  restaurantQueryKeys,
+  useMyRestaurant,
+  useRestaurantCategories,
+} from '@/hooks/use-restaurant'
 import { restaurantApi } from '@/lib/api/restaurant.api'
 
 export default function MenuPage() {
   const { restaurant } = useMyRestaurant()
-  const { data: menu, isLoading } = useRestaurantMenu(restaurant?.id)
+  // Use getCategories (returns ALL categories including inactive) for management view
+  const { data: categories, isLoading } = useRestaurantCategories(restaurant?.id)
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [categoryFormOpen, setCategoryFormOpen] = useState(false)
@@ -28,14 +33,14 @@ export default function MenuPage() {
 
   const queryClient = useQueryClient()
 
-  const invalidateMenu = () =>
-    queryClient.invalidateQueries({ queryKey: restaurantQueryKeys.menu(restaurant!.id) })
+  const invalidateCategories = () =>
+    queryClient.invalidateQueries({ queryKey: restaurantQueryKeys.categories(restaurant!.id) })
 
   // ─── Category mutations ─────────────────────────────────────────────────────
   const createCategory = useMutation({
     mutationFn: (dto: CategoryFormValues) => restaurantApi.createCategory(restaurant!.id, dto),
     onSuccess: () => {
-      void invalidateMenu()
+      void invalidateCategories()
       toast.success('Category added')
     },
     onError: () => toast.error('Failed to add category'),
@@ -45,7 +50,7 @@ export default function MenuPage() {
     mutationFn: (dto: CategoryFormValues) =>
       restaurantApi.updateCategory(restaurant!.id, editingCategory!.id, dto),
     onSuccess: () => {
-      void invalidateMenu()
+      void invalidateCategories()
       toast.success('Category updated')
     },
     onError: () => toast.error('Failed to update category'),
@@ -54,7 +59,7 @@ export default function MenuPage() {
   const deleteCategory = useMutation({
     mutationFn: (categoryId: string) => restaurantApi.deleteCategory(restaurant!.id, categoryId),
     onSuccess: () => {
-      void invalidateMenu()
+      void invalidateCategories()
       setSelectedCategoryId(null)
       toast.success('Category deleted')
     },
@@ -66,7 +71,7 @@ export default function MenuPage() {
     mutationFn: (dto: MenuItemFormValues) =>
       restaurantApi.createItem(restaurant!.id, selectedCategoryId!, dto),
     onSuccess: () => {
-      void invalidateMenu()
+      void invalidateCategories()
       toast.success('Item added')
     },
     onError: () => toast.error('Failed to add item'),
@@ -76,7 +81,7 @@ export default function MenuPage() {
     mutationFn: (dto: MenuItemFormValues) =>
       restaurantApi.updateItem(restaurant!.id, editingItem!.id, dto),
     onSuccess: () => {
-      void invalidateMenu()
+      void invalidateCategories()
       toast.success('Item updated')
     },
     onError: () => toast.error('Failed to update item'),
@@ -85,7 +90,7 @@ export default function MenuPage() {
   const deleteItem = useMutation({
     mutationFn: (itemId: string) => restaurantApi.deleteItem(restaurant!.id, itemId),
     onSuccess: () => {
-      void invalidateMenu()
+      void invalidateCategories()
       toast.success('Item deleted')
     },
     onError: () => toast.error('Failed to delete item'),
@@ -96,24 +101,31 @@ export default function MenuPage() {
       restaurantApi.updateItem(restaurant!.id, item.id, {
         isAvailable: !item.isAvailable,
       }),
-    onSuccess: () => void invalidateMenu(),
+    onSuccess: () => void invalidateCategories(),
     onError: () => toast.error('Failed to update item'),
   })
 
   // ─── Sort helpers ────────────────────────────────────────────────────────────
-  const handleMoveCategory = async (index: number, direction: 'up' | 'down') => {
-    if (!menu || !restaurant) return
-    const sorted = [...menu].sort((a, b) => a.sortOrder - b.sortOrder)
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    const current = sorted[index]
-    const target = sorted[targetIndex]
-    if (!current || !target) return
+  const handleReorderCategory = async (fromIndex: number, toIndex: number) => {
+    if (!categories || !restaurant) return
+    const sorted = [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
+    const moved = sorted[fromIndex]
+    if (!moved) return
 
-    await Promise.all([
-      restaurantApi.updateCategory(restaurant.id, current.id, { name: current.name }),
-      restaurantApi.updateCategory(restaurant.id, target.id, { name: target.name }),
-    ])
-    void invalidateMenu()
+    // Compute new sortOrder using neighbors in the target position
+    const reordered = [...sorted]
+    reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+
+    const prev = reordered[toIndex - 1]
+    const next = reordered[toIndex + 1]
+    let newSortOrder: number
+    if (!prev) newSortOrder = (next?.sortOrder ?? 10) - 10
+    else if (!next) newSortOrder = prev.sortOrder + 10
+    else newSortOrder = (prev.sortOrder + next.sortOrder) / 2
+
+    await restaurantApi.updateCategory(restaurant.id, moved.id, { sortOrder: newSortOrder })
+    void invalidateCategories()
   }
 
   if (isLoading) {
@@ -128,7 +140,7 @@ export default function MenuPage() {
     )
   }
 
-  if (!menu) {
+  if (!categories) {
     return (
       <EmptyState
         icon={<UtensilsCrossed className="h-12 w-12" />}
@@ -138,7 +150,7 @@ export default function MenuPage() {
     )
   }
 
-  const sortedCategories = [...menu].sort((a, b) => a.sortOrder - b.sortOrder)
+  const sortedCategories = [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
   const selectedCategory = sortedCategories.find((c) => c.id === selectedCategoryId) ?? null
 
   return (
@@ -165,8 +177,7 @@ export default function MenuPage() {
                 deleteCategory.mutate(cat.id)
               }
             }}
-            onMoveUp={(i) => handleMoveCategory(i, 'up')}
-            onMoveDown={(i) => handleMoveCategory(i, 'down')}
+            onReorder={handleReorderCategory}
           />
         </div>
 
@@ -209,7 +220,13 @@ export default function MenuPage() {
         title={editingCategory ? 'Edit Category' : 'Add Category'}
         initialValues={
           editingCategory
-            ? { name: editingCategory.name, description: editingCategory.description }
+            ? {
+                name: editingCategory.name,
+                description: editingCategory.description ?? '',
+                imageUrl: editingCategory.imageUrl ?? '',
+                sortOrder: editingCategory.sortOrder,
+                isActive: editingCategory.isActive,
+              }
             : undefined
         }
         onSubmit={async (values) => {

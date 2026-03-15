@@ -36,7 +36,13 @@ export class MenuItem {
   @Column({ name: 'image_url', type: 'varchar', nullable: true })
   public imageUrl: string | null
 
-  @Column({ name: 'base_price', type: 'decimal', precision: 10, scale: 2 })
+  @Column({
+    name: 'base_price',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public basePrice: number
 
   @Column({ length: 10, default: 'VND' })
@@ -76,10 +82,10 @@ export class MenuItem {
 
   // ─── Relations ─────────────────────────────────────────────────────────
 
-  @OneToMany(() => MenuItemVariant, (v) => v.item, { cascade: true, eager: true })
+  @OneToMany(() => MenuItemVariant, (v) => v.item, { cascade: true })
   public variants: MenuItemVariant[]
 
-  @OneToMany(() => MenuItemAddon, (a) => a.item, { cascade: true, eager: true })
+  @OneToMany(() => MenuItemAddon, (a) => a.item, { cascade: true })
   public addons: MenuItemAddon[]
 
   @CreateDateColumn({ name: 'created_at' })

@@ -1,5 +1,7 @@
 import { apiClient } from './client'
 
+type Wrapped<T> = { data: T }
+
 export interface OperatingHour {
   id: string
   dayOfWeek: string
@@ -96,19 +98,23 @@ export interface Review {
 
 export const restaurantApi = {
   getBySlug: (slug: string): Promise<Restaurant> =>
-    apiClient.get(`/restaurants/by-slug/${slug}`).then((r) => r.data as Restaurant),
+    apiClient.get<Wrapped<Restaurant>>(`/restaurants/by-slug/${slug}`).then((r) => r.data.data),
 
   getById: (id: string): Promise<Restaurant> =>
-    apiClient.get(`/restaurants/${id}`).then((r) => r.data as Restaurant),
+    apiClient.get<Wrapped<Restaurant>>(`/restaurants/${id}`).then((r) => r.data.data),
 
   getMenu: (restaurantId: string): Promise<MenuCategory[]> =>
-    apiClient.get(`/restaurants/${restaurantId}/menu`).then((r) => r.data as MenuCategory[]),
+    apiClient
+      .get<Wrapped<MenuCategory[]>>(`/restaurants/${restaurantId}/menu`)
+      .then((r) => r.data.data),
 
   getReviews: (
     restaurantId: string,
     params?: { page?: number; limit?: number },
   ): Promise<{ items: Review[]; total: number }> =>
     apiClient
-      .get(`/restaurants/${restaurantId}/reviews`, { params })
-      .then((r) => r.data as { items: Review[]; total: number }),
+      .get<Wrapped<{ items: Review[]; total: number }>>(`/restaurants/${restaurantId}/reviews`, {
+        params,
+      })
+      .then((r) => r.data.data),
 }

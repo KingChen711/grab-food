@@ -15,8 +15,6 @@ interface UserMenuProps {
 export function UserMenu({ user }: UserMenuProps) {
   const logout = useLogout()
 
-  console.log({ user })
-
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>

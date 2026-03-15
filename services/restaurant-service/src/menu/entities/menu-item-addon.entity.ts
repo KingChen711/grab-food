@@ -16,7 +16,13 @@ export class MenuItemAddon {
   @Column({ length: 100 })
   public name: string
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public price: number
 
   @Column({ name: 'max_quantity', default: 1 })

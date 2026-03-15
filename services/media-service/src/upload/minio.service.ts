@@ -28,6 +28,21 @@ export class MinioService implements OnModuleInit {
         await this.client.makeBucket(this.bucket, 'us-east-1')
         this.logger.log(`Bucket created: ${this.bucket}`)
       }
+
+      // Allow anonymous GET on all objects so CDN URLs are publicly readable
+      const publicReadPolicy = JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Effect: 'Allow',
+            Principal: { AWS: ['*'] },
+            Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${this.bucket}/*`],
+          },
+        ],
+      })
+      await this.client.setBucketPolicy(this.bucket, publicReadPolicy)
+      this.logger.log(`Bucket public-read policy set: ${this.bucket}`)
     } catch (err) {
       // Non-fatal — MinIO may not be running in test environments
       this.logger.warn(`MinIO init warning: ${String(err)}`)

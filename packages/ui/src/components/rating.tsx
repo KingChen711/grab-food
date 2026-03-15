@@ -40,7 +40,7 @@ function Rating({
     lg: 'text-base',
   }[size]
 
-  const displayValue = hovered ?? value
+  const displayValue = hovered ?? Number(value)
 
   return (
     <div className={cn('flex items-center gap-1', className)}>
@@ -80,7 +80,9 @@ function Rating({
 
       {(showValue || showCount !== undefined) && (
         <span className={cn('text-muted-foreground', textSize)}>
-          {showValue && <span className="font-semibold text-foreground">{value.toFixed(1)}</span>}
+          {showValue && (
+            <span className="font-semibold text-foreground">{Number(value).toFixed(1)}</span>
+          )}
           {showCount !== undefined && <span className="ml-1">({showCount.toLocaleString()})</span>}
         </span>
       )}

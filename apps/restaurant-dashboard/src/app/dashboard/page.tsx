@@ -65,7 +65,7 @@ export default function DashboardPage() {
     },
     {
       label: 'Avg Rating',
-      value: restaurant ? restaurant.avgRating.toFixed(1) : '—',
+      value: restaurant ? Number(restaurant.avgRating).toFixed(1) : '—',
       icon: Star,
       color: 'text-yellow-500',
     },

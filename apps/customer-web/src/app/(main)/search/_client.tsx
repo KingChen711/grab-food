@@ -1,7 +1,8 @@
 'use client'
 
 import { Button, EmptyState, Input, SkeletonRestaurantCard, useGeolocation } from '@grab/ui'
-import { MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
+import { LayoutGrid, Map, MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -11,6 +12,14 @@ import { SortSelect } from '@/components/search/sort-select'
 import { useInfiniteSearchRestaurants } from '@/hooks/use-search-query'
 import type { SearchRestaurantsParams } from '@/lib/api/search.api'
 
+const RestaurantMap = dynamic(
+  () => import('@/components/search/restaurant-map').then((m) => m.RestaurantMap),
+  {
+    ssr: false,
+    loading: () => <div className="h-[500px] w-full animate-pulse rounded-xl border bg-muted/30" />,
+  },
+)
+
 export function SearchPageClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -18,6 +27,7 @@ export function SearchPageClient() {
 
   const [query, setQuery] = useState(searchParams.get('q') ?? '')
   const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid')
 
   const params: Omit<SearchRestaurantsParams, 'page'> = {
     q: searchParams.get('q') ?? undefined,
@@ -134,10 +144,38 @@ export function SearchPageClient() {
                 </p>
               )}
             </div>
-            <SortSelect
-              value={searchParams.get('sort') ?? 'relevance'}
-              onChange={(v) => updateParam('sort', v)}
-            />
+            <div className="flex items-center gap-2">
+              <SortSelect
+                value={searchParams.get('sort') ?? 'relevance'}
+                onChange={(v) => updateParam('sort', v)}
+              />
+              <div className="flex overflow-hidden rounded-lg border">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={[
+                    'flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors',
+                    viewMode === 'grid'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card hover:bg-accent',
+                  ].join(' ')}
+                  title="Grid view"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('map')}
+                  className={[
+                    'flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors',
+                    viewMode === 'map'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card hover:bg-accent',
+                  ].join(' ')}
+                  title="Map view"
+                >
+                  <Map className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Mobile filters drawer */}
@@ -171,8 +209,17 @@ export function SearchPageClient() {
             />
           )}
 
-          {/* Results grid */}
-          {allRestaurants.length > 0 && (
+          {/* Map view */}
+          {viewMode === 'map' && allRestaurants.length > 0 && (
+            <RestaurantMap
+              restaurants={allRestaurants}
+              userLat={lat ?? undefined}
+              userLng={lng ?? undefined}
+            />
+          )}
+
+          {/* Grid view */}
+          {viewMode === 'grid' && allRestaurants.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {allRestaurants.map((r) => (
                 <RestaurantCard key={r.id} restaurant={r} />
@@ -180,16 +227,18 @@ export function SearchPageClient() {
             </div>
           )}
 
-          {/* Infinite scroll sentinel */}
-          <div ref={sentinelRef} className="mt-4">
-            {isFetchingNextPage && (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <SkeletonRestaurantCard key={i} />
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Infinite scroll sentinel (grid only) */}
+          {viewMode === 'grid' && (
+            <div ref={sentinelRef} className="mt-4">
+              {isFetchingNextPage && (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <SkeletonRestaurantCard key={i} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -26,6 +26,7 @@ describe('UsersService', () => {
             findAddressesByUser: jest.fn(),
             addAddress: jest.fn(),
             unsetDefaultAddresses: jest.fn(),
+            countAddresses: jest.fn().mockResolvedValue(0),
             findAddressById: jest.fn(),
             updateAddress: jest.fn(),
             deleteAddress: jest.fn(),

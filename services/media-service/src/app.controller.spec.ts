@@ -1,4 +1,4 @@
-import { HealthCheckService } from '@nestjs/terminus'
+import { HealthCheckService, TypeOrmHealthIndicator } from '@nestjs/terminus'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 
@@ -9,13 +9,21 @@ const mockHealthCheckService = {
   check: jest.fn().mockResolvedValue({ status: 'ok' }),
 }
 
+const mockTypeOrmIndicator = {
+  pingCheck: jest.fn().mockResolvedValue({ database: { status: 'up' } }),
+}
+
 describe('AppController', () => {
   let appController: AppController
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService, { provide: HealthCheckService, useValue: mockHealthCheckService }],
+      providers: [
+        AppService,
+        { provide: HealthCheckService, useValue: mockHealthCheckService },
+        { provide: TypeOrmHealthIndicator, useValue: mockTypeOrmIndicator },
+      ],
     }).compile()
 
     appController = app.get<AppController>(AppController)

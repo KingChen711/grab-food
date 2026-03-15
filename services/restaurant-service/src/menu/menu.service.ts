@@ -36,18 +36,57 @@ export class MenuService {
   // ─── Categories ───────────────────────────────────────────────────────────
 
   public async getCategories(restaurantId: string): Promise<MenuCategory[]> {
-    return this.categoryRepo.find({
+    const categories = await this.categoryRepo.find({
       where: { restaurantId },
       order: { sortOrder: 'ASC', name: 'ASC' },
     })
+    if (categories.length === 0) return categories
+
+    const items = await this.itemRepo.find({
+      where: { restaurantId },
+      relations: ['variants', 'addons'],
+      order: { createdAt: 'ASC' },
+    })
+
+    const itemsByCategory = new Map<string, MenuItem[]>()
+    for (const item of items) {
+      const list = itemsByCategory.get(item.categoryId) ?? []
+      list.push(item)
+      itemsByCategory.set(item.categoryId, list)
+    }
+
+    for (const cat of categories) {
+      cat.items = itemsByCategory.get(cat.id) ?? []
+    }
+
+    return categories
   }
 
   public async getFullMenu(restaurantId: string): Promise<MenuCategory[]> {
-    return this.categoryRepo.find({
+    const categories = await this.categoryRepo.find({
       where: { restaurantId, isActive: true },
-      relations: ['items', 'items.variants', 'items.addons'],
       order: { sortOrder: 'ASC' },
     })
+    if (categories.length === 0) return categories
+
+    const items = await this.itemRepo.find({
+      where: { restaurantId },
+      relations: ['variants', 'addons'],
+      order: { createdAt: 'ASC' },
+    })
+
+    const itemsByCategory = new Map<string, MenuItem[]>()
+    for (const item of items) {
+      const list = itemsByCategory.get(item.categoryId) ?? []
+      list.push(item)
+      itemsByCategory.set(item.categoryId, list)
+    }
+
+    for (const cat of categories) {
+      cat.items = itemsByCategory.get(cat.id) ?? []
+    }
+
+    return categories
   }
 
   public async createCategory(
@@ -97,6 +136,7 @@ export class MenuService {
   public async getItems(restaurantId: string): Promise<MenuItem[]> {
     return this.itemRepo.find({
       where: { restaurantId },
+      relations: ['variants', 'addons'],
       order: { createdAt: 'ASC' },
     })
   }

@@ -7,7 +7,7 @@ interface ErrorResponse {
   error: {
     code: string
     message: string
-    details?: unknown
+    fields?: Record<string, string>
   }
   timestamp: string
   path: string
@@ -25,7 +25,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR
     let message = 'Internal server error'
     let code = 'INTERNAL_ERROR'
-    let details: unknown
+    let fields: Record<string, string> | undefined
 
     if (exception instanceof HttpException) {
       status = exception.getStatus()
@@ -35,9 +35,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = exResponse
       } else if (typeof exResponse === 'object' && exResponse !== null) {
         const body = exResponse as Record<string, unknown>
-        message = (body['message'] as string) ?? exception.message
-        details = Array.isArray(body['message']) ? body['message'] : undefined
-        code = (body['error'] as string) ?? this.statusToCode(status)
+        const rawMessage = body['message']
+
+        if (Array.isArray(rawMessage)) {
+          // class-validator produces an array of "fieldName error description" strings
+          message = 'Validation failed'
+          fields = this.parseValidationMessages(rawMessage as string[])
+        } else {
+          message = (rawMessage as string) ?? exception.message
+        }
       }
 
       code = this.statusToCode(status)
@@ -47,12 +53,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const errorBody: ErrorResponse = {
       success: false,
-      error: { code, message, ...(details ? { details } : {}) },
+      error: { code, message, ...(fields ? { fields } : {}) },
       timestamp: new Date().toISOString(),
       path: request.url,
     }
 
     response.status(status).json(errorBody)
+  }
+
+  private parseValidationMessages(messages: string[]): Record<string, string> {
+    const result: Record<string, string> = {}
+    for (const msg of messages) {
+      const spaceIdx = msg.indexOf(' ')
+      if (spaceIdx > 0) {
+        const field = msg.slice(0, spaceIdx)
+        // Keep first error per field (class-validator may emit multiple per field)
+        if (!(field in result)) result[field] = msg.slice(spaceIdx + 1)
+      }
+    }
+    return result
   }
 
   private statusToCode(status: number): string {

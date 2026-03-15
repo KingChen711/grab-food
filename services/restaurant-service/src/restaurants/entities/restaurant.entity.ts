@@ -47,10 +47,20 @@ export class Restaurant {
   @Column()
   public country: string
 
-  @Column({ type: 'decimal', precision: 10, scale: 7 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 7,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public lat: number
 
-  @Column({ type: 'decimal', precision: 10, scale: 7 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 7,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public lng: number
 
   // ─── Contact & Meta ───────────────────────────────────────────────────────
@@ -87,7 +97,14 @@ export class Restaurant {
 
   // ─── Metrics ──────────────────────────────────────────────────────────────
 
-  @Column({ name: 'avg_rating', type: 'decimal', precision: 3, scale: 2, default: 0 })
+  @Column({
+    name: 'avg_rating',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    default: 0,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public avgRating: number
 
   @Column({ name: 'total_reviews', default: 0 })
@@ -99,10 +116,24 @@ export class Restaurant {
   @Column({ name: 'avg_prep_time_minutes', default: 20 })
   public avgPrepTimeMinutes: number
 
-  @Column({ name: 'min_order_amount', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'min_order_amount',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public minOrderAmount: number
 
-  @Column({ name: 'delivery_fee', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'delivery_fee',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: { to: (v: number) => v, from: (v: string) => parseFloat(v) },
+  })
   public deliveryFee: number
 
   // ─── Relations ────────────────────────────────────────────────────────────

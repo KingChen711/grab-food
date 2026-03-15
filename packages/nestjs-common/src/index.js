@@ -2,12 +2,21 @@
 Object.defineProperty(exports, '__esModule', { value: true })
 exports.TransformInterceptor =
   exports.RolesGuard =
+  exports.JwtAuthGuard =
   exports.HttpExceptionFilter =
   exports.ROLES_KEY =
   exports.Roles =
   exports.Public =
   exports.IS_PUBLIC_KEY =
+  exports.CurrentUser =
     void 0
+var current_user_decorator_1 = require('./decorators/current-user.decorator')
+Object.defineProperty(exports, 'CurrentUser', {
+  enumerable: true,
+  get: function () {
+    return current_user_decorator_1.CurrentUser
+  },
+})
 var public_decorator_1 = require('./decorators/public.decorator')
 Object.defineProperty(exports, 'IS_PUBLIC_KEY', {
   enumerable: true,
@@ -39,6 +48,13 @@ Object.defineProperty(exports, 'HttpExceptionFilter', {
   enumerable: true,
   get: function () {
     return http_exception_filter_1.HttpExceptionFilter
+  },
+})
+var jwt_auth_guard_1 = require('./guards/jwt-auth.guard')
+Object.defineProperty(exports, 'JwtAuthGuard', {
+  enumerable: true,
+  get: function () {
+    return jwt_auth_guard_1.JwtAuthGuard
   },
 })
 var roles_guard_1 = require('./guards/roles.guard')

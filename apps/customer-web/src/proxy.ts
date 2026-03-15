@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 const PROTECTED_PATHS = ['/profile']
 const AUTH_PATHS = ['/login', '/register', '/forgot-password']
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuth = !!request.cookies.get('access_token')?.value
 

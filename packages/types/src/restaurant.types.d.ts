@@ -56,7 +56,12 @@ export interface MenuItem {
   prepTimeMinutes: number
   calories?: number
   tags: string[]
-  dietaryInfo: DietaryInfo
+  isVegetarian: boolean
+  isVegan: boolean
+  isGlutenFree: boolean
+  isHalal: boolean
+  isSpicy: boolean
+  spicyLevel?: 1 | 2 | 3
   variants: MenuItemVariant[]
   addons: MenuItemAddon[]
 }

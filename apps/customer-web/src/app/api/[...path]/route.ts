@@ -2,11 +2,11 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
 const SERVICE_ROUTES: { prefix: string; url: string }[] = [
-  { prefix: '/search', url: process.env.SEARCH_SERVICE_URL ?? 'http://localhost:3007' },
-  { prefix: '/uploads', url: process.env.MEDIA_SERVICE_URL ?? 'http://localhost:3010' },
-  { prefix: '/restaurants', url: process.env.RESTAURANT_SERVICE_URL ?? 'http://localhost:3002' },
+  { prefix: '/search', url: process.env.SEARCH_SERVICE_URL ?? 'http://127.0.0.1:3007' },
+  { prefix: '/uploads', url: process.env.MEDIA_SERVICE_URL ?? 'http://127.0.0.1:3010' },
+  { prefix: '/restaurants', url: process.env.RESTAURANT_SERVICE_URL ?? 'http://127.0.0.1:3002' },
 ]
-const DEFAULT_URL = process.env.API_URL ?? 'http://localhost:3001'
+const DEFAULT_URL = process.env.API_URL ?? 'http://127.0.0.1:3001'
 
 function resolveBackendUrl(path: string): string {
   for (const { prefix, url } of SERVICE_ROUTES) {

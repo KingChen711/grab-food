@@ -1,5 +1,7 @@
 import { apiClient } from './client'
 
+type Wrapped<T> = { data: T }
+
 export interface RestaurantResult {
   id: string
   name: string
@@ -16,6 +18,7 @@ export interface RestaurantResult {
   city: string
   coverImageUrl: string | null
   logoUrl: string | null
+  location?: { lat: number; lon: number }
 }
 
 export interface SearchRestaurantsParams {
@@ -47,6 +50,6 @@ export interface SearchRestaurantsResponse {
 export const searchApi = {
   restaurants: (params: SearchRestaurantsParams): Promise<SearchRestaurantsResponse> =>
     apiClient
-      .get('/search/restaurants', { params })
-      .then((r) => r.data as SearchRestaurantsResponse),
+      .get<Wrapped<SearchRestaurantsResponse>>('/search/restaurants', { params })
+      .then((r) => r.data.data),
 }
