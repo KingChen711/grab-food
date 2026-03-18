@@ -1,0 +1,102 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common'
+import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+
+import { CartService } from './cart.service'
+import {
+  AddItemToCartDto,
+  ApplyPromoCodeDto,
+  CartResponse,
+  UpdateItemQuantityDto,
+} from './dto/cart.dto'
+
+// Temporary: will be replaced by @CurrentUser() from JWT once auth guard is wired (Phase 6)
+const TEMP_CUSTOMER_ID = '00000000-0000-0000-0000-000000000001'
+
+@ApiTags('Cart')
+@Controller('cart')
+export class CartController {
+  constructor(private readonly cartService: CartService) {}
+
+  // ─── Get cart ─────────────────────────────────────────────────────────────
+
+  @Get()
+  @ApiOperation({ summary: "Get the current user's cart" })
+  @ApiOkResponse({ type: CartResponse, nullable: true })
+  public async getCart(): Promise<CartResponse | null> {
+    return this.cartService.getCart(TEMP_CUSTOMER_ID)
+  }
+
+  // ─── Items ────────────────────────────────────────────────────────────────
+
+  @Post('items')
+  @ApiOperation({
+    summary: 'Add an item to cart',
+    description:
+      'If the item already exists (same menuItemId + variant), quantity is incremented. ' +
+      'Adding an item from a different restaurant clears the existing cart first.',
+  })
+  @ApiOkResponse({ type: CartResponse })
+  public async addItem(@Body() dto: AddItemToCartDto): Promise<CartResponse> {
+    return this.cartService.addItem(TEMP_CUSTOMER_ID, dto)
+  }
+
+  @Patch('items/:cartItemId')
+  @ApiOperation({ summary: 'Update quantity of a cart line item (quantity=0 removes the item)' })
+  @ApiOkResponse({ type: CartResponse })
+  public async updateItem(
+    @Param('cartItemId', ParseUUIDPipe) cartItemId: string,
+    @Body() dto: UpdateItemQuantityDto,
+  ): Promise<CartResponse> {
+    return this.cartService.updateItemQuantity(TEMP_CUSTOMER_ID, cartItemId, dto.quantity)
+  }
+
+  @Delete('items/:cartItemId')
+  @ApiOperation({ summary: 'Remove a specific line item from the cart' })
+  @ApiOkResponse({ type: CartResponse })
+  public async removeItem(
+    @Param('cartItemId', ParseUUIDPipe) cartItemId: string,
+  ): Promise<CartResponse> {
+    return this.cartService.removeItem(TEMP_CUSTOMER_ID, cartItemId)
+  }
+
+  // ─── Clear cart ───────────────────────────────────────────────────────────
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Clear the entire cart' })
+  @ApiNoContentResponse()
+  public async clearCart(): Promise<void> {
+    return this.cartService.clearCart(TEMP_CUSTOMER_ID)
+  }
+
+  // ─── Promotion code ───────────────────────────────────────────────────────
+
+  @Post('promo')
+  @ApiOperation({
+    summary: 'Apply a promotion code to the cart',
+    description:
+      'Stores the code on the cart. Discount amount is computed at checkout by the promotion-service.',
+  })
+  @ApiOkResponse({ type: CartResponse })
+  public async applyPromo(@Body() dto: ApplyPromoCodeDto): Promise<CartResponse> {
+    return this.cartService.applyPromoCode(TEMP_CUSTOMER_ID, dto.code)
+  }
+
+  @Delete('promo')
+  @ApiOperation({ summary: 'Remove the applied promotion code from the cart' })
+  @ApiOkResponse({ type: CartResponse })
+  public async removePromo(): Promise<CartResponse> {
+    return this.cartService.removePromoCode(TEMP_CUSTOMER_ID)
+  }
+}

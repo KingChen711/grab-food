@@ -1,0 +1,1 @@
+export const REDIS_CLIENT = 'CART_REDIS_CLIENT'
