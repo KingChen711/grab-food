@@ -1,18 +1,29 @@
-﻿import { HttpExceptionFilter, TransformInterceptor } from '@grab/nestjs-common'
+import { HttpExceptionFilter, TransformInterceptor } from '@grab/nestjs-common'
 import { ClassSerializerInterceptor, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import { TerminusModule } from '@nestjs/terminus'
 
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { databaseConfig } from './config/database.config'
+import { mongoConfig } from './config/mongodb.config'
+import { DatabaseModule } from './database/database.module'
+import { MongoModule } from './database/mongo.module'
+import { OrdersModule } from './orders/orders.module'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
+      load: [databaseConfig, mongoConfig],
     }),
+    EventEmitterModule.forRoot(),
+    DatabaseModule,
+    MongoModule,
+    OrdersModule,
     TerminusModule,
   ],
   controllers: [AppController],
