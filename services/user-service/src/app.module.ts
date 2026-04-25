@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module'
 import { databaseConfig } from './config/database.config'
 import { googleConfig } from './config/google.config'
 import { jwtConfig } from './config/jwt.config'
+import { mapboxConfig } from './config/mapbox.config'
 import { redisConfig } from './config/redis.config'
 import { DatabaseModule } from './database/database.module'
 import { UsersModule } from './users/users.module'
@@ -22,7 +23,7 @@ import { UsersModule } from './users/users.module'
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [databaseConfig, jwtConfig, redisConfig, googleConfig],
+      load: [databaseConfig, jwtConfig, redisConfig, googleConfig, mapboxConfig],
     }),
     EventEmitterModule.forRoot({ wildcard: false, delimiter: '.', maxListeners: 20 }),
     ScheduleModule.forRoot(),
