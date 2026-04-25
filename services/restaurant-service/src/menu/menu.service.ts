@@ -2,11 +2,15 @@ import type { JwtPayload } from '@grab/types'
 import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { InjectRepository } from '@nestjs/typeorm'
+import { plainToInstance } from 'class-transformer'
+import { validate } from 'class-validator'
 import { DataSource, Repository } from 'typeorm'
 
 import { Restaurant } from '../restaurants/entities/restaurant.entity'
+import { csvRowsToObjects, parseCsv } from './csv-parser.util'
+import type { BulkImportResult } from './dto/bulk-import.dto'
 import type { CreateCategoryDto } from './dto/create-category.dto'
-import type { CreateMenuItemDto } from './dto/create-menu-item.dto'
+import { CreateMenuItemDto } from './dto/create-menu-item.dto'
 import type { UpdateCategoryDto } from './dto/update-category.dto'
 import type { UpdateMenuItemDto } from './dto/update-menu-item.dto'
 import { MenuCategory } from './entities/menu-category.entity'
@@ -209,6 +213,155 @@ export class MenuService {
       where: { id: savedId },
       relations: ['variants', 'addons'],
     })
+  }
+
+  /**
+   * Bulk-create menu items in a single transaction. Either all succeed or none.
+   * Variants/addons per item are supported.
+   */
+  public async bulkCreateItems(
+    restaurantId: string,
+    categoryId: string,
+    items: CreateMenuItemDto[],
+    requester: JwtPayload,
+  ): Promise<BulkImportResult> {
+    await this.assertRestaurantOwner(restaurantId, requester)
+    await this.findCategory(categoryId, restaurantId)
+
+    const createdIds: string[] = await this.dataSource.transaction(async (manager) => {
+      const ids: string[] = []
+      for (const dto of items) {
+        const item = manager.create(MenuItem, {
+          restaurantId,
+          categoryId,
+          name: dto.name,
+          description: dto.description ?? null,
+          imageUrl: dto.imageUrl ?? null,
+          basePrice: dto.basePrice,
+          currency: dto.currency ?? 'VND',
+          isAvailable: dto.isAvailable ?? true,
+          availableFrom: dto.availableFrom ?? null,
+          availableTo: dto.availableTo ?? null,
+          prepTimeMinutes: dto.prepTimeMinutes ?? 15,
+          calories: dto.calories ?? null,
+          tags: dto.tags ?? [],
+          isVegetarian: dto.isVegetarian ?? false,
+          isVegan: dto.isVegan ?? false,
+          isGlutenFree: dto.isGlutenFree ?? false,
+          isHalal: dto.isHalal ?? false,
+          isSpicy: dto.isSpicy ?? false,
+          spicyLevel: dto.spicyLevel ?? null,
+        })
+        const saved = await manager.save(item)
+        ids.push(saved.id)
+
+        if (dto.variants?.length) {
+          await manager.save(
+            dto.variants.map((v) =>
+              manager.create(MenuItemVariant, {
+                itemId: saved.id,
+                name: v.name,
+                priceAdjustment: v.priceAdjustment ?? 0,
+                isDefault: v.isDefault ?? false,
+              }),
+            ),
+          )
+        }
+
+        if (dto.addons?.length) {
+          await manager.save(
+            dto.addons.map((a) =>
+              manager.create(MenuItemAddon, {
+                itemId: saved.id,
+                name: a.name,
+                price: a.price ?? 0,
+                maxQuantity: a.maxQuantity ?? 1,
+                isRequired: a.isRequired ?? false,
+              }),
+            ),
+          )
+        }
+      }
+      return ids
+    })
+
+    this.logger.log(
+      `Bulk created ${createdIds.length} menu items in restaurant ${restaurantId} category ${categoryId}`,
+    )
+    for (const id of createdIds) {
+      this.eventEmitter.emit('menu_item.created', { itemId: id, restaurantId })
+    }
+
+    return { imported: createdIds.length, skipped: 0, errors: [] }
+  }
+
+  /**
+   * Parse CSV text into CreateMenuItemDto objects, validate each row, and create
+   * the valid ones. Invalid rows are skipped and reported in the result.
+   */
+  public async bulkImportItemsCsv(
+    restaurantId: string,
+    categoryId: string,
+    csv: string,
+    defaultCurrency: string | undefined,
+    requester: JwtPayload,
+  ): Promise<BulkImportResult> {
+    const rows = parseCsv(csv)
+    const objects = csvRowsToObjects(rows)
+
+    const valid: CreateMenuItemDto[] = []
+    const errors: Array<{ row: number; message: string }> = []
+
+    for (let i = 0; i < objects.length; i++) {
+      const raw = objects[i]
+      const rowIndex = i + 2 // +1 for header, +1 for 1-based
+
+      const candidate = {
+        name: raw.name,
+        description: raw.description || undefined,
+        imageUrl: raw.imageUrl || undefined,
+        basePrice: raw.basePrice ? Number(raw.basePrice) : undefined,
+        currency: raw.currency || defaultCurrency,
+        prepTimeMinutes: raw.prepTimeMinutes ? Number(raw.prepTimeMinutes) : undefined,
+        calories: raw.calories ? Number(raw.calories) : undefined,
+        tags: raw.tags
+          ? raw.tags
+              .split(';')
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : undefined,
+        isAvailable: raw.isAvailable ? raw.isAvailable.toLowerCase() === 'true' : undefined,
+        isVegetarian: raw.isVegetarian ? raw.isVegetarian.toLowerCase() === 'true' : undefined,
+        isVegan: raw.isVegan ? raw.isVegan.toLowerCase() === 'true' : undefined,
+        isGlutenFree: raw.isGlutenFree ? raw.isGlutenFree.toLowerCase() === 'true' : undefined,
+        isHalal: raw.isHalal ? raw.isHalal.toLowerCase() === 'true' : undefined,
+        isSpicy: raw.isSpicy ? raw.isSpicy.toLowerCase() === 'true' : undefined,
+        spicyLevel: raw.spicyLevel ? (Number(raw.spicyLevel) as 1 | 2 | 3) : undefined,
+        availableFrom: raw.availableFrom || undefined,
+        availableTo: raw.availableTo || undefined,
+      }
+
+      const dto = plainToInstance(CreateMenuItemDto, candidate)
+      const validationErrors = await validate(dto, { whitelist: true, forbidNonWhitelisted: false })
+
+      if (validationErrors.length > 0) {
+        errors.push({
+          row: rowIndex,
+          message: validationErrors
+            .map((e) => Object.values(e.constraints ?? {}).join(', '))
+            .join('; '),
+        })
+        continue
+      }
+      valid.push(dto)
+    }
+
+    if (valid.length === 0) {
+      return { imported: 0, skipped: errors.length, errors }
+    }
+
+    const result = await this.bulkCreateItems(restaurantId, categoryId, valid, requester)
+    return { imported: result.imported, skipped: errors.length, errors }
   }
 
   public async updateItem(

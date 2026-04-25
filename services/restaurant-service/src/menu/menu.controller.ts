@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
+import { BulkImportCsvDto, BulkImportItemsDto, type BulkImportResult } from './dto/bulk-import.dto'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { CreateMenuItemDto } from './dto/create-menu-item.dto'
 import { UpdateCategoryDto } from './dto/update-category.dto'
@@ -130,6 +131,42 @@ export class MenuController {
     @CurrentUser() user: JwtPayload,
   ): Promise<MenuItem> {
     return this.menuService.createItem(restaurantId, categoryId, dto, user)
+  }
+
+  @Post('categories/:categoryId/items/bulk')
+  @Roles('restaurant_owner', 'admin')
+  @ApiOperation({ summary: 'Bulk-create menu items (JSON array, owner)' })
+  @ApiResponse({ status: 201, description: 'All items created in a single transaction' })
+  public bulkCreateItems(
+    @Param('restaurantId') restaurantId: string,
+    @Param('categoryId') categoryId: string,
+    @Body() dto: BulkImportItemsDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<BulkImportResult> {
+    return this.menuService.bulkCreateItems(restaurantId, categoryId, dto.items, user)
+  }
+
+  @Post('categories/:categoryId/items/import-csv')
+  @Roles('restaurant_owner', 'admin')
+  @ApiOperation({
+    summary: 'Bulk-import menu items from CSV text (owner)',
+    description:
+      'Submit CSV text in body. Invalid rows are skipped and reported in `errors`. Valid rows are inserted in one transaction.',
+  })
+  @ApiResponse({ status: 201, description: 'Returns counts and per-row errors' })
+  public bulkImportCsv(
+    @Param('restaurantId') restaurantId: string,
+    @Param('categoryId') categoryId: string,
+    @Body() dto: BulkImportCsvDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<BulkImportResult> {
+    return this.menuService.bulkImportItemsCsv(
+      restaurantId,
+      categoryId,
+      dto.csv,
+      dto.defaultCurrency,
+      user,
+    )
   }
 
   @Patch('items/:itemId')
