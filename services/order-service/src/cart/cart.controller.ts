@@ -32,7 +32,7 @@ export class CartController {
 
   @Get()
   @ApiOperation({ summary: "Get the current user's cart" })
-  @ApiOkResponse({ type: CartResponse, nullable: true })
+  @ApiOkResponse({ type: CartResponse, description: 'Returns null if no cart exists' })
   public async getCart(): Promise<CartResponse | null> {
     return this.cartService.getCart(TEMP_CUSTOMER_ID)
   }

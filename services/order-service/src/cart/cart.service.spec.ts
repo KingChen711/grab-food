@@ -132,7 +132,7 @@ describe('CartService', () => {
 
     it('does not expose _matchKey in response', async () => {
       const cart = await service.addItem(USER_ID, baseItem)
-      const item = cart.items[0] as Record<string, unknown>
+      const item = cart.items[0] as unknown as Record<string, unknown>
       expect(item['_matchKey']).toBeUndefined()
     })
   })

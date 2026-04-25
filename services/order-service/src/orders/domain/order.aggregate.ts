@@ -85,7 +85,13 @@ export class OrderAggregate {
   // ─── State machine transitions ───────────────────────────────────────────────
 
   public confirm(estimatedPrepTimeMinutes: number): void {
-    this.assertStatus('PENDING', 'confirm')
+    // PENDING = manual restaurant-accept path (future)
+    // CREATED = orchestrated saga path (saga confirms directly after payment)
+    if (this.status !== 'PENDING' && this.status !== 'CREATED') {
+      throw new BadRequestException(
+        `Cannot confirm order: expected status PENDING or CREATED, got ${this.status}`,
+      )
+    }
     this.apply(new OrderConfirmedEvent(this.id, this.restaurantId, estimatedPrepTimeMinutes))
   }
 

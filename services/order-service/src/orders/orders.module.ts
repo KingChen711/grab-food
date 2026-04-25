@@ -22,6 +22,6 @@ import { OrderReadProjection } from './projections/order-read.projection'
   ],
   controllers: [OrdersController],
   providers: [OrdersService, EventStoreService, OrderReadProjection],
-  exports: [OrdersService],
+  exports: [OrdersService, EventStoreService],
 })
 export class OrdersModule {}
