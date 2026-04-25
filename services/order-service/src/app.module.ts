@@ -1,14 +1,16 @@
-import { HttpExceptionFilter, TransformInterceptor } from '@grab/nestjs-common'
+import { HttpExceptionFilter, JwtAuthGuard, TransformInterceptor } from '@grab/nestjs-common'
 import { ClassSerializerInterceptor, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { TerminusModule } from '@nestjs/terminus'
 
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { AuthModule } from './auth/auth.module'
 import { CartModule } from './cart/cart.module'
 import { databaseConfig } from './config/database.config'
+import { jwtConfig } from './config/jwt.config'
 import { mongoConfig } from './config/mongodb.config'
 import { rabbitmqConfig } from './config/rabbitmq.config'
 import { redisConfig } from './config/redis.config'
@@ -22,9 +24,10 @@ import { SagaModule } from './sagas/saga.module'
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [databaseConfig, mongoConfig, redisConfig, rabbitmqConfig],
+      load: [databaseConfig, mongoConfig, redisConfig, rabbitmqConfig, jwtConfig],
     }),
     EventEmitterModule.forRoot(),
+    AuthModule,
     DatabaseModule,
     MongoModule,
     OrdersModule,
@@ -35,6 +38,7 @@ import { SagaModule } from './sagas/saga.module'
   controllers: [AppController],
   providers: [
     AppService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },

@@ -1,3 +1,5 @@
+import { CurrentUser } from '@grab/nestjs-common'
+import type { JwtPayload } from '@grab/types'
 import {
   Body,
   Controller,
@@ -9,6 +11,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 
 import { CreateOrderDto } from './dto/create-order.dto'
 import {
@@ -20,9 +23,8 @@ import {
 import { OrdersService } from './orders.service'
 import type { OrderRead } from './projections/entities/order-read.entity'
 
-// Temporary: customer ID will come from JWT once auth guard is wired up
-const TEMP_CUSTOMER_ID = '00000000-0000-0000-0000-000000000001'
-
+@ApiTags('Orders')
+@ApiBearerAuth()
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
@@ -31,13 +33,16 @@ export class OrdersController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  public async create(@Body() dto: CreateOrderDto): Promise<{ orderId: string }> {
-    return this.ordersService.createOrder(TEMP_CUSTOMER_ID, dto)
+  public async create(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CreateOrderDto,
+  ): Promise<{ orderId: string }> {
+    return this.ordersService.createOrder(user.sub, dto)
   }
 
   @Get('my')
-  public async myOrders(): Promise<OrderRead[]> {
-    return this.ordersService.findByCustomer(TEMP_CUSTOMER_ID)
+  public async myOrders(@CurrentUser() user: JwtPayload): Promise<OrderRead[]> {
+    return this.ordersService.findByCustomer(user.sub)
   }
 
   @Get(':id')
