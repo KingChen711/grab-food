@@ -1,1 +1,4 @@
-pnpm lint-staged
+# --no-stash: workaround for lint-staged@16 + Git 2.54 on Windows where
+# `git stash create` mis-parses the SHA, causing "Needed a single revision".
+# Lint/format still runs on staged files; only the backup stash is skipped.
+pnpm lint-staged --no-stash
