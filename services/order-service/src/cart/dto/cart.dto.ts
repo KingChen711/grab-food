@@ -105,6 +105,60 @@ export class ApplyPromoCodeDto {
   public code!: string
 }
 
+// ─── Checkout DTO ──────────────────────────────────────────────────────────────
+
+export class CheckoutDeliveryAddressDto {
+  @ApiPropertyOptional({ example: 'Home' })
+  @IsOptional()
+  @IsString()
+  public label?: string
+
+  @ApiProperty({ example: '123 Nguyen Hue, Quan 1, TP HCM' })
+  @IsString()
+  public address!: string
+
+  @ApiProperty({ example: 10.7769 })
+  @IsNumber()
+  public lat!: number
+
+  @ApiProperty({ example: 106.7009 })
+  @IsNumber()
+  public lng!: number
+
+  @ApiPropertyOptional({ example: 'Ring the doorbell twice' })
+  @IsOptional()
+  @IsString()
+  public notes?: string
+}
+
+export class CheckoutDto {
+  @ApiProperty({ type: CheckoutDeliveryAddressDto })
+  @ValidateNested()
+  @Type(() => CheckoutDeliveryAddressDto)
+  public deliveryAddress!: CheckoutDeliveryAddressDto
+
+  @ApiPropertyOptional({ example: 15000, description: 'Server-calculated delivery fee' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  public deliveryFee?: number
+
+  @ApiPropertyOptional({ description: 'Customer order notes' })
+  @IsOptional()
+  @IsString()
+  public notes?: string
+
+  @ApiPropertyOptional({ description: 'ISO datetime; if set, schedules the order' })
+  @IsOptional()
+  @IsString()
+  public scheduledFor?: string
+}
+
+export class CheckoutResponse {
+  @ApiProperty()
+  public orderId!: string
+}
+
 // ─── Response types ────────────────────────────────────────────────────────────
 
 export class CartItemResponse {

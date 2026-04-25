@@ -1,11 +1,13 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 import type { Redis } from 'ioredis'
 
+import type { CreateOrderDto } from '../orders/dto/create-order.dto'
 import { REDIS_CLIENT } from './cart.constants'
 import type {
   AddItemToCartDto,
   CartResponse,
+  CheckoutDto,
   SelectedAddonDto,
   SelectedVariantDto,
 } from './dto/cart.dto'
@@ -157,6 +159,49 @@ export class CartService {
     const cart = await this.loadOrFail(userId)
     cart.appliedPromotionCode = undefined
     return this.recalcAndSave(userId, cart)
+  }
+
+  /**
+   * Build a CreateOrderDto from the current cart + checkout data.
+   * Caller is responsible for invoking OrdersService.createOrder and clearing
+   * the cart on success — that two-step keeps the cart and order modules from
+   * needing a circular dependency.
+   */
+  public async buildOrderDto(userId: string, dto: CheckoutDto): Promise<CreateOrderDto> {
+    const cart = await this.loadOrFail(userId)
+    if (cart.items.length === 0) {
+      throw new BadRequestException('Cannot checkout an empty cart')
+    }
+
+    const deliveryFee = dto.deliveryFee ?? cart.deliveryFee
+    const subtotal = cart.subtotal
+    const tax = cart.tax
+    const total = this.round(subtotal + deliveryFee + tax - cart.discount)
+
+    return {
+      restaurantId: cart.restaurantId,
+      restaurantName: cart.restaurantName,
+      items: cart.items.map((i) => ({
+        menuItemId: i.menuItemId,
+        menuItemName: i.menuItemName,
+        unitPrice: i.unitPrice,
+        quantity: i.quantity,
+        notes: i.notes,
+      })),
+      subtotal,
+      deliveryFee,
+      tax,
+      total,
+      deliveryAddress: {
+        label: dto.deliveryAddress.label,
+        address: dto.deliveryAddress.address,
+        lat: dto.deliveryAddress.lat,
+        lng: dto.deliveryAddress.lng,
+        notes: dto.deliveryAddress.notes,
+      },
+      notes: dto.notes,
+      scheduledFor: dto.scheduledFor ? new Date(dto.scheduledFor) : undefined,
+    }
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────────────

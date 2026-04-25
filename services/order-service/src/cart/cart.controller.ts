@@ -20,11 +20,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger'
 
+import { OrdersService } from '../orders/orders.service'
 import { CartService } from './cart.service'
 import {
   AddItemToCartDto,
   ApplyPromoCodeDto,
   CartResponse,
+  CheckoutDto,
+  CheckoutResponse,
   UpdateItemQuantityDto,
 } from './dto/cart.dto'
 
@@ -32,7 +35,10 @@ import {
 @ApiBearerAuth()
 @Controller('cart')
 export class CartController {
-  constructor(private readonly cartService: CartService) {}
+  constructor(
+    private readonly cartService: CartService,
+    private readonly ordersService: OrdersService,
+  ) {}
 
   // ─── Get cart ─────────────────────────────────────────────────────────────
 
@@ -112,5 +118,26 @@ export class CartController {
   @ApiOkResponse({ type: CartResponse })
   public async removePromo(@CurrentUser() user: JwtPayload): Promise<CartResponse> {
     return this.cartService.removePromoCode(user.sub)
+  }
+
+  // ─── Checkout ─────────────────────────────────────────────────────────────
+
+  @Post('checkout')
+  @ApiOperation({
+    summary: 'Convert the current cart into an order and start the saga',
+    description:
+      'Builds an order from the cart and customer-supplied delivery address, ' +
+      'kicks off the OrderFulfillment saga, then clears the cart. Returns the new order ID. ' +
+      'On saga compensation, the order is later marked CANCELLED via order-service events.',
+  })
+  @ApiOkResponse({ type: CheckoutResponse })
+  public async checkout(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: CheckoutDto,
+  ): Promise<CheckoutResponse> {
+    const orderDto = await this.cartService.buildOrderDto(user.sub, dto)
+    const { orderId } = await this.ordersService.createOrder(user.sub, orderDto)
+    await this.cartService.clearCart(user.sub)
+    return { orderId }
   }
 }

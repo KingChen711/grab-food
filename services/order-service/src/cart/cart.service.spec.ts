@@ -227,4 +227,58 @@ describe('CartService', () => {
     const expectedTtl = 7 * 24 * 60 * 60
     expect(redisMock.setex).toHaveBeenCalledWith(`cart:${USER_ID}`, expectedTtl, expect.any(String))
   })
+
+  // ── buildOrderDto (checkout) ──────────────────────────────────────────────
+
+  describe('buildOrderDto', () => {
+    const deliveryAddress = {
+      label: 'Home',
+      address: '123 Nguyen Hue, Quan 1, TP HCM',
+      lat: 10.7769,
+      lng: 106.7009,
+      notes: 'Ring twice',
+    }
+
+    it('throws BadRequestException when cart is empty', async () => {
+      await service.addItem(USER_ID, baseItem)
+      await service.removeItem(USER_ID, (await service.getCart(USER_ID))!.items[0].cartItemId)
+
+      await expect(service.buildOrderDto(USER_ID, { deliveryAddress })).rejects.toThrow(
+        /empty cart/i,
+      )
+    })
+
+    it('throws NotFoundException when cart does not exist', async () => {
+      await expect(service.buildOrderDto(USER_ID, { deliveryAddress })).rejects.toThrow(
+        NotFoundException,
+      )
+    })
+
+    it('builds CreateOrderDto from cart + checkout data', async () => {
+      await service.addItem(USER_ID, baseItem)
+
+      const dto = await service.buildOrderDto(USER_ID, {
+        deliveryAddress,
+        deliveryFee: 15000,
+        notes: 'Leave at door',
+      })
+
+      expect(dto.restaurantId).toBe(RESTAURANT_A)
+      expect(dto.items).toHaveLength(1)
+      expect(dto.items[0].menuItemId).toBe(MENU_ITEM_ID)
+      expect(dto.deliveryFee).toBe(15000)
+      expect(dto.deliveryAddress.address).toBe(deliveryAddress.address)
+      expect(dto.notes).toBe('Leave at door')
+      // total = subtotal + delivery + tax - discount
+      expect(dto.total).toBe(dto.subtotal + 15000 + dto.tax - 0)
+    })
+
+    it('uses cart deliveryFee (0) when checkout dto omits it', async () => {
+      await service.addItem(USER_ID, baseItem)
+
+      const dto = await service.buildOrderDto(USER_ID, { deliveryAddress })
+
+      expect(dto.deliveryFee).toBe(0)
+    })
+  })
 })
