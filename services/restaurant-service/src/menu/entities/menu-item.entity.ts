@@ -51,6 +51,16 @@ export class MenuItem {
   @Column({ name: 'is_available', default: true })
   public isAvailable: boolean
 
+  // Optional time-of-day window — applies to local restaurant time.
+  // Null = always available (during restaurant operating hours).
+  // Format: 'HH:MM' (24h, e.g. '06:00' for breakfast start).
+  // If both set and availableTo < availableFrom, the window crosses midnight.
+  @Column({ name: 'available_from', type: 'varchar', length: 5, nullable: true })
+  public availableFrom: string | null
+
+  @Column({ name: 'available_to', type: 'varchar', length: 5, nullable: true })
+  public availableTo: string | null
+
   @Column({ name: 'prep_time_minutes', default: 15 })
   public prepTimeMinutes: number
 

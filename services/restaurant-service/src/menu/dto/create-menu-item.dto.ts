@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
   MaxLength,
   Min,
   ValidateNested,
@@ -86,6 +87,22 @@ export class CreateMenuItemDto {
   @IsOptional()
   @IsBoolean()
   public isAvailable?: boolean
+
+  @ApiPropertyOptional({
+    description: "Time-of-day window start (HH:MM, 24h). E.g. '06:00' for breakfast.",
+    example: '06:00',
+  })
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'availableFrom must be in HH:MM format' })
+  public availableFrom?: string
+
+  @ApiPropertyOptional({
+    description: 'Time-of-day window end (HH:MM, 24h). If end < start, window crosses midnight.',
+    example: '10:30',
+  })
+  @IsOptional()
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'availableTo must be in HH:MM format' })
+  public availableTo?: string
 
   @ApiPropertyOptional({ default: 15 })
   @IsOptional()
