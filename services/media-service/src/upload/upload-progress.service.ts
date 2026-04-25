@@ -6,6 +6,7 @@ export interface UploadProgressEvent {
   uploadId: string
   step:
     | 'download'
+    | 'validate'
     | 'resize_thumbnail'
     | 'resize_medium'
     | 'resize_full'

@@ -6,11 +6,13 @@ import { UploadProgressService } from '../upload-progress.service'
 import { ImageProcessor } from './image.processor'
 
 // Mock sharp module — avoids native binary dependency in tests
+const sharpMetadataMock = jest.fn()
 jest.mock('sharp', () => {
   const chain = {
     resize: jest.fn().mockReturnThis(),
     webp: jest.fn().mockReturnThis(),
     toBuffer: jest.fn().mockResolvedValue(Buffer.from('fake-webp')),
+    metadata: (...args: unknown[]) => sharpMetadataMock(...args),
   }
   return jest.fn(() => chain)
 })
@@ -65,6 +67,7 @@ describe('ImageProcessor', () => {
     minio = mockMinio()
     uploadService = mockUploadService()
     progress = mockProgress()
+    sharpMetadataMock.mockReset().mockResolvedValue({ format: 'jpeg', width: 800, height: 600 })
 
     const module = await Test.createTestingModule({
       providers: [
@@ -107,7 +110,7 @@ describe('ImageProcessor', () => {
       expect(lastCall).toMatchObject({ step: 'done', status: 'done', progress: 100 })
     })
 
-    it('publishes progress events in order: download → resize × 3 → save → done', async () => {
+    it('publishes progress events in order: download → validate → resize × 3 → save → done', async () => {
       uploadService.getUpload.mockResolvedValue(makeRecord())
       minio.getBuffer.mockResolvedValue(Buffer.from('bytes'))
       minio.putBuffer.mockResolvedValue(undefined)
@@ -120,6 +123,8 @@ describe('ImageProcessor', () => {
       expect(steps).toEqual([
         'download',
         'download',
+        'validate',
+        'validate',
         'resize_thumbnail',
         'resize_thumbnail',
         'resize_medium',
@@ -147,6 +152,102 @@ describe('ImageProcessor', () => {
 
       const failEvent = progress.publish.mock.calls.find((c: any[]) => c[0].step === 'failed')?.[0]
       expect(failEvent).toMatchObject({ step: 'failed', status: 'error' })
+    })
+  })
+
+  describe('content moderation', () => {
+    it('rejects empty file without retry', async () => {
+      uploadService.getUpload.mockResolvedValue(makeRecord())
+      minio.getBuffer.mockResolvedValue(Buffer.alloc(0))
+      uploadService.markFailed.mockResolvedValue(undefined)
+      progress.publish.mockResolvedValue(undefined)
+
+      // Should NOT rethrow (validation errors don't retry)
+      await processor.process(makeJob())
+
+      expect(uploadService.markFailed).toHaveBeenCalledWith(
+        'upload-abc',
+        expect.stringContaining('empty'),
+      )
+      expect(minio.putBuffer).not.toHaveBeenCalled()
+    })
+
+    it('rejects oversized file without retry', async () => {
+      uploadService.getUpload.mockResolvedValue(makeRecord())
+      // 11 MB > 10 MB limit
+      minio.getBuffer.mockResolvedValue(Buffer.alloc(11 * 1024 * 1024))
+      uploadService.markFailed.mockResolvedValue(undefined)
+      progress.publish.mockResolvedValue(undefined)
+
+      await processor.process(makeJob())
+
+      expect(uploadService.markFailed).toHaveBeenCalledWith(
+        'upload-abc',
+        expect.stringContaining('too large'),
+      )
+      expect(minio.putBuffer).not.toHaveBeenCalled()
+    })
+
+    it('rejects non-image file (sharp metadata throws)', async () => {
+      uploadService.getUpload.mockResolvedValue(makeRecord())
+      minio.getBuffer.mockResolvedValue(Buffer.from('not-an-image-just-text'))
+      sharpMetadataMock.mockRejectedValueOnce(
+        new Error('Input buffer contains unsupported image format'),
+      )
+      uploadService.markFailed.mockResolvedValue(undefined)
+      progress.publish.mockResolvedValue(undefined)
+
+      await processor.process(makeJob())
+
+      expect(uploadService.markFailed).toHaveBeenCalledWith(
+        'upload-abc',
+        expect.stringContaining('not a valid image'),
+      )
+    })
+
+    it('rejects unsupported format (e.g. tiff)', async () => {
+      uploadService.getUpload.mockResolvedValue(makeRecord())
+      minio.getBuffer.mockResolvedValue(Buffer.from('bytes'))
+      sharpMetadataMock.mockResolvedValueOnce({ format: 'tiff', width: 100, height: 100 })
+      uploadService.markFailed.mockResolvedValue(undefined)
+      progress.publish.mockResolvedValue(undefined)
+
+      await processor.process(makeJob())
+
+      expect(uploadService.markFailed).toHaveBeenCalledWith(
+        'upload-abc',
+        expect.stringContaining('Unsupported image format'),
+      )
+    })
+
+    it('rejects images smaller than minimum dimensions', async () => {
+      uploadService.getUpload.mockResolvedValue(makeRecord())
+      minio.getBuffer.mockResolvedValue(Buffer.from('bytes'))
+      sharpMetadataMock.mockResolvedValueOnce({ format: 'jpeg', width: 16, height: 16 })
+      uploadService.markFailed.mockResolvedValue(undefined)
+      progress.publish.mockResolvedValue(undefined)
+
+      await processor.process(makeJob())
+
+      expect(uploadService.markFailed).toHaveBeenCalledWith(
+        'upload-abc',
+        expect.stringContaining('too small'),
+      )
+    })
+
+    it('rejects images larger than maximum dimensions', async () => {
+      uploadService.getUpload.mockResolvedValue(makeRecord())
+      minio.getBuffer.mockResolvedValue(Buffer.from('bytes'))
+      sharpMetadataMock.mockResolvedValueOnce({ format: 'jpeg', width: 10000, height: 10000 })
+      uploadService.markFailed.mockResolvedValue(undefined)
+      progress.publish.mockResolvedValue(undefined)
+
+      await processor.process(makeJob())
+
+      expect(uploadService.markFailed).toHaveBeenCalledWith(
+        'upload-abc',
+        expect.stringContaining('too large'),
+      )
     })
   })
 })

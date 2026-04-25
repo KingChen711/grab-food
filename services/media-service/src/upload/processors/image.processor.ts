@@ -4,7 +4,13 @@ import type { Job } from 'bullmq'
 import sharp from 'sharp'
 
 import { MinioService } from '../minio.service'
-import { IMAGE_PROCESSING_QUEUE } from '../upload.constants'
+import {
+  ALLOWED_IMAGE_FORMATS,
+  IMAGE_PROCESSING_QUEUE,
+  MAX_FILE_SIZE_BYTES,
+  MAX_IMAGE_DIMENSION,
+  MIN_IMAGE_DIMENSION,
+} from '../upload.constants'
 import { UploadService } from '../upload.service'
 import { UploadProgressService } from '../upload-progress.service'
 
@@ -13,6 +19,14 @@ const RESOLUTIONS = [
   { name: 'medium' as const, width: 600, step: 'resize_medium' as const },
   { name: 'full' as const, width: 1200, step: 'resize_full' as const },
 ]
+
+class UnprocessableImageError extends Error {
+  public readonly retryable = false
+  constructor(message: string) {
+    super(message)
+    this.name = 'UnprocessableImageError'
+  }
+}
 
 @Processor(IMAGE_PROCESSING_QUEUE)
 export class ImageProcessor extends WorkerHost {
@@ -38,6 +52,11 @@ export class ImageProcessor extends WorkerHost {
       await this.progress.publish({ uploadId, step: 'download', status: 'started', progress: 5 })
       const originalBuffer = await this.minioService.getBuffer(record.originalKey)
       await this.progress.publish({ uploadId, step: 'download', status: 'done', progress: 10 })
+
+      // Step 1b: Content moderation — validate file size, format, dimensions
+      await this.progress.publish({ uploadId, step: 'validate', status: 'started', progress: 12 })
+      await this.validateImage(originalBuffer)
+      await this.progress.publish({ uploadId, step: 'validate', status: 'done', progress: 15 })
 
       // Steps 2-4: Resize → WebP → upload for each resolution
       const keys = { thumbnailKey: '', mediumKey: '', fullKey: '' }
@@ -90,7 +109,60 @@ export class ImageProcessor extends WorkerHost {
         progress: -1,
         message,
       })
+
+      // Don't retry validation failures — the file will never become valid
+      if (error instanceof UnprocessableImageError) {
+        return
+      }
       throw error // rethrow so BullMQ retries the job
     }
+  }
+
+  /**
+   * Content moderation — reject the file if it isn't a real image, is too big,
+   * or has invalid dimensions. Throws UnprocessableImageError on failure so
+   * BullMQ does not retry (the file would fail again).
+   */
+  private async validateImage(buffer: Buffer): Promise<void> {
+    if (buffer.byteLength === 0) {
+      throw new UnprocessableImageError('Uploaded file is empty')
+    }
+    if (buffer.byteLength > MAX_FILE_SIZE_BYTES) {
+      throw new UnprocessableImageError(
+        `File too large: ${buffer.byteLength} bytes (max ${MAX_FILE_SIZE_BYTES})`,
+      )
+    }
+
+    let metadata: sharp.Metadata
+    try {
+      metadata = await sharp(buffer).metadata()
+    } catch {
+      throw new UnprocessableImageError('Uploaded file is not a valid image')
+    }
+
+    if (!metadata.format || !ALLOWED_IMAGE_FORMATS.includes(metadata.format as never)) {
+      throw new UnprocessableImageError(
+        `Unsupported image format: ${metadata.format ?? 'unknown'}. Allowed: ${ALLOWED_IMAGE_FORMATS.join(', ')}`,
+      )
+    }
+
+    const { width, height } = metadata
+    if (!width || !height) {
+      throw new UnprocessableImageError('Image has no dimensions')
+    }
+    if (width < MIN_IMAGE_DIMENSION || height < MIN_IMAGE_DIMENSION) {
+      throw new UnprocessableImageError(
+        `Image too small: ${width}x${height} (min ${MIN_IMAGE_DIMENSION}px each side)`,
+      )
+    }
+    if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+      throw new UnprocessableImageError(
+        `Image too large: ${width}x${height} (max ${MAX_IMAGE_DIMENSION}px each side)`,
+      )
+    }
+
+    this.logger.debug(
+      `Validated image: ${metadata.format} ${width}x${height} ${buffer.byteLength}B`,
+    )
   }
 }
