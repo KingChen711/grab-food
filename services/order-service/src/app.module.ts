@@ -16,6 +16,7 @@ import { rabbitmqConfig } from './config/rabbitmq.config'
 import { redisConfig } from './config/redis.config'
 import { DatabaseModule } from './database/database.module'
 import { MongoModule } from './database/mongo.module'
+import { KafkaModule } from './kafka/kafka.module'
 import { OrdersModule } from './orders/orders.module'
 import { SagaModule } from './sagas/saga.module'
 
@@ -33,6 +34,7 @@ import { SagaModule } from './sagas/saga.module'
     OrdersModule,
     CartModule,
     SagaModule,
+    KafkaModule,
     TerminusModule,
   ],
   controllers: [AppController],
