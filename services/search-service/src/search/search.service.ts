@@ -56,7 +56,7 @@ export class SearchService implements OnModuleInit, OnModuleDestroy {
     }
 
     if (dto.cuisine?.length) {
-      filter.push({ terms: { cuisineTypes: dto.cuisine } })
+      filter.push({ terms: { 'cuisineTypes.keyword': dto.cuisine } })
     }
     if (dto.priceRange !== undefined) {
       filter.push({ term: { priceRange: dto.priceRange } })
@@ -81,7 +81,7 @@ export class SearchService implements OnModuleInit, OnModuleDestroy {
       from,
       size: dto.limit ?? 20,
       aggs: {
-        cuisines: { terms: { field: 'cuisineTypes', size: 30 } },
+        cuisines: { terms: { field: 'cuisineTypes.keyword', size: 30 } },
         priceRanges: { terms: { field: 'priceRange', size: 4 } },
       },
     })
@@ -208,13 +208,23 @@ export class SearchService implements OnModuleInit, OnModuleDestroy {
 
     await this.client.indices.create({
       index: RESTAURANTS_INDEX,
+      settings: this.buildAnalysisSettings(),
       mappings: {
         properties: {
           id: { type: 'keyword' },
-          name: { type: 'text', fields: { keyword: { type: 'keyword' } } },
+          name: {
+            type: 'text',
+            analyzer: 'food_synonym_analyzer',
+            search_analyzer: 'food_synonym_analyzer',
+            fields: { keyword: { type: 'keyword' } },
+          },
           slug: { type: 'keyword' },
-          description: { type: 'text' },
-          cuisineTypes: { type: 'keyword' },
+          description: { type: 'text', analyzer: 'food_synonym_analyzer' },
+          cuisineTypes: {
+            type: 'text',
+            analyzer: 'food_synonym_analyzer',
+            fields: { keyword: { type: 'keyword' } },
+          },
           priceRange: { type: 'integer' },
           avgRating: { type: 'float' },
           totalOrders: { type: 'integer' },
@@ -241,18 +251,32 @@ export class SearchService implements OnModuleInit, OnModuleDestroy {
 
     await this.client.indices.create({
       index: MENU_ITEMS_INDEX,
+      settings: this.buildAnalysisSettings(),
       mappings: {
         properties: {
           id: { type: 'keyword' },
           restaurantId: { type: 'keyword' },
-          restaurantName: { type: 'text', fields: { keyword: { type: 'keyword' } } },
+          restaurantName: {
+            type: 'text',
+            analyzer: 'food_synonym_analyzer',
+            fields: { keyword: { type: 'keyword' } },
+          },
           restaurantSlug: { type: 'keyword' },
-          name: { type: 'text', fields: { keyword: { type: 'keyword' } } },
-          description: { type: 'text' },
+          name: {
+            type: 'text',
+            analyzer: 'food_synonym_analyzer',
+            search_analyzer: 'food_synonym_analyzer',
+            fields: { keyword: { type: 'keyword' } },
+          },
+          description: { type: 'text', analyzer: 'food_synonym_analyzer' },
           basePrice: { type: 'float' },
           currency: { type: 'keyword' },
           isAvailable: { type: 'boolean' },
-          tags: { type: 'keyword' },
+          tags: {
+            type: 'text',
+            analyzer: 'food_synonym_analyzer',
+            fields: { keyword: { type: 'keyword' } },
+          },
           isVegetarian: { type: 'boolean' },
           isVegan: { type: 'boolean' },
           isGlutenFree: { type: 'boolean' },
@@ -262,6 +286,55 @@ export class SearchService implements OnModuleInit, OnModuleDestroy {
       },
     })
     this.logger.log(`Index created: ${MENU_ITEMS_INDEX}`)
+  }
+
+  /**
+   * Custom analysis settings with food/cuisine synonyms.
+   * Synonyms are applied at index AND search time so that documents containing
+   * "burger" can be found via "hamburger" and vice versa.
+   *
+   * Note: changing this requires reindexing existing documents.
+   */
+  private buildAnalysisSettings() {
+    return {
+      analysis: {
+        filter: {
+          food_synonyms: {
+            type: 'synonym_graph' as const,
+            synonyms: [
+              // English food synonyms
+              'burger, hamburger, cheeseburger',
+              'fries, chips, french fries',
+              'soda, pop, soft drink',
+              'shrimp, prawn',
+              'chicken, fowl, poultry',
+              // Vietnamese ↔ English
+              'pho, phở, vietnamese noodle soup',
+              'banh mi, bánh mì, vietnamese sandwich',
+              'bun bo, bún bò, beef noodle soup',
+              'goi cuon, gỏi cuốn, spring roll, summer roll',
+              'cha gio, chả giò, fried spring roll',
+              'com tam, cơm tấm, broken rice',
+              'che, chè, vietnamese dessert',
+              'ca phe sua da, cà phê sữa đá, vietnamese iced coffee',
+              // Cuisine equivalents
+              'sushi, japanese, nigiri, sashimi',
+              'pizza, italian',
+              'taco, mexican',
+              'curry, indian, thai',
+              'ramen, japanese noodle',
+            ],
+          },
+        },
+        analyzer: {
+          food_synonym_analyzer: {
+            type: 'custom' as const,
+            tokenizer: 'standard',
+            filter: ['lowercase', 'asciifolding', 'food_synonyms'],
+          },
+        },
+      },
+    }
   }
 
   private buildRestaurantSort(dto: SearchRestaurantsDto): SortCombinations[] {

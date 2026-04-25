@@ -113,8 +113,8 @@ describe('SearchService', () => {
       await service.searchRestaurants({ cuisine: ['Vietnamese', 'Thai'] })
 
       const filters = es.search.mock.calls[0][0].query.bool.filter
-      const termsFilter = filters.find((f: any) => f.terms?.cuisineTypes)
-      expect(termsFilter.terms.cuisineTypes).toEqual(['Vietnamese', 'Thai'])
+      const termsFilter = filters.find((f: any) => f.terms?.['cuisineTypes.keyword'])
+      expect(termsFilter.terms['cuisineTypes.keyword']).toEqual(['Vietnamese', 'Thai'])
     })
 
     it('applies priceRange, minRating, isOpen filters', async () => {
