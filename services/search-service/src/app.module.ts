@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
 import { TerminusModule } from '@nestjs/terminus'
 
+import { AnalyticsModule } from './analytics/analytics.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { elasticsearchConfig } from './config/elasticsearch.config'
@@ -20,6 +21,7 @@ import { SearchModule } from './search/search.module'
     TerminusModule,
     SearchModule,
     IndexingModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [
