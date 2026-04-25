@@ -48,10 +48,13 @@ export interface ApiError {
   success: false
   error: {
     code: string
+    /** Human-readable summary. Always a string (never an array). */
     message: string
-    details?: Record<string, unknown>
+    /** Field-level validation errors: { fieldName: 'error description' } */
+    fields?: Record<string, string>
   }
   timestamp: Timestamp
+  path: string
 }
 export type SortOrder = 'asc' | 'desc'
 export interface SortQuery {
