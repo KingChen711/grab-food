@@ -259,7 +259,7 @@ Transport: TCP (NestJS microservice), RabbitMQ
 - `user_devices` — user_id, device_token, platform, last_active
 - `refresh_tokens` — user_id, token_hash, expires_at, revoked
 - `oauth_accounts` — user_id, provider, provider_id
-- `user_favorites` — user_id, restaurant_id, dish_id
+- `user_favorites` — user_id, restaurant_id, dish_id _(deferred to Phase 2 — depends on restaurant entities)_
 
 **Events Produced:**
 
@@ -287,7 +287,7 @@ Transport: TCP, RabbitMQ
 - Pricing engine (base price, variants, addons, dynamic pricing)
 - Operating hours & holiday schedules
 - Restaurant approval workflow (pending → approved → active)
-- Preparation time estimation (dựa trên queue hiện tại)
+- Preparation time estimation (dựa trên queue hiện tại) _(deferred to Phase 3 — depends on order-service queue depth)_
 - Restaurant rating aggregation
 - Geo-based restaurant discovery
 - Bulk menu upload (CSV/Excel import)
@@ -707,7 +707,7 @@ Transport: TCP
 
 - Image upload (restaurant photos, menu items, avatars, delivery proof)
 - Image processing pipeline (resize, compress, watermark, format conversion)
-- CDN integration (signed URLs, cache invalidation)
+- CDN integration (signed URLs, cache invalidation) _(time-limited signed URLs deferred to Phase 5 — needed for delivery proof; static URLs sufficient for Phase 2 public images)_
 - Content moderation (basic — file type check, size limit)
 - Presigned upload URLs (direct upload từ client → MinIO)
 
