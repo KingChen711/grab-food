@@ -1,11 +1,16 @@
 'use client'
 
-import { EmptyState, Skeleton } from '@grab/ui'
-import { ClipboardList } from 'lucide-react'
-import { useMemo } from 'react'
+import { Button, EmptyState, Skeleton } from '@grab/ui'
+import { Bell, BellOff, ClipboardList } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { OrderCard } from '@/components/orders/order-card'
+import {
+  readChimePreference,
+  useNewOrderChime,
+  writeChimePreference,
+} from '@/hooks/use-new-order-chime'
 import { useMyRestaurant } from '@/hooks/use-restaurant'
 import {
   useCancelOrder,
@@ -40,6 +45,13 @@ export function OrdersPageClient() {
 
   const isMutating =
     confirm.isPending || startPreparing.isPending || markReady.isPending || cancel.isPending
+
+  // Chime when a new order arrives — enabled by default, persisted in localStorage
+  const [chimeEnabled, setChimeEnabled] = useState(true)
+  useEffect(() => {
+    setChimeEnabled(readChimePreference())
+  }, [])
+  useNewOrderChime(orders, chimeEnabled)
 
   const incoming = useMemo(
     () => (orders ?? []).filter((o) => o.status === 'CREATED' || o.status === 'PENDING'),
@@ -96,9 +108,26 @@ export function OrdersPageClient() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Orders</h1>
-        <p className="text-sm text-muted-foreground">Live feed — auto-refreshes every 5 seconds.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Orders</h1>
+          <p className="text-sm text-muted-foreground">
+            Live feed — auto-refreshes every 5 seconds.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const next = !chimeEnabled
+            setChimeEnabled(next)
+            writeChimePreference(next)
+            toast.success(next ? 'Sound on' : 'Sound off')
+          }}
+          aria-label={chimeEnabled ? 'Disable new-order sound' : 'Enable new-order sound'}
+        >
+          {chimeEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+        </Button>
       </div>
 
       {!orders || orders.length === 0 ? (
