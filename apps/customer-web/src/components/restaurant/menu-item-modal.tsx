@@ -7,8 +7,8 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { useAddToCart, useCart } from '@/hooks/use-cart-query'
 import type { MenuItem, MenuItemAddon, MenuItemVariant, Restaurant } from '@/lib/api/restaurant.api'
-import { useCartStore } from '@/stores/cart.store'
 
 interface MenuItemModalProps {
   item: MenuItem
@@ -18,8 +18,8 @@ interface MenuItemModalProps {
 }
 
 export function MenuItemModal({ item, restaurant, open, onClose }: MenuItemModalProps) {
-  const addItem = useCartStore((s) => s.addItem)
-  const cartRestaurantId = useCartStore((s) => s.restaurantId)
+  const { data: cart } = useCart()
+  const addToCart = useAddToCart()
 
   const defaultVariant = item.variants.find((v) => v.isDefault) ?? item.variants[0] ?? null
   const [selectedVariant, setSelectedVariant] = useState<MenuItemVariant | null>(defaultVariant)
@@ -41,7 +41,8 @@ export function MenuItemModal({ item, restaurant, open, onClose }: MenuItemModal
   }
 
   function handleAddToCart() {
-    if (cartRestaurantId && cartRestaurantId !== restaurant.id) {
+    // Cart switches restaurants automatically server-side, but warn the user first
+    if (cart && cart.restaurantId !== restaurant.id) {
       if (
         !window.confirm(
           'Your cart has items from another restaurant. Starting a new cart will clear your current items. Continue?',
@@ -51,25 +52,33 @@ export function MenuItemModal({ item, restaurant, open, onClose }: MenuItemModal
       }
     }
 
-    addItem({
-      restaurantId: restaurant.id,
-      restaurantName: restaurant.name,
-      menuItemId: item.id,
-      name: item.name,
-      imageUrl: item.imageUrl,
-      basePrice: Number(item.basePrice),
-      variantId: selectedVariant?.id ?? null,
-      variantName: selectedVariant?.name ?? null,
-      variantPriceAdjustment: selectedVariant?.priceAdjustment ?? 0,
-      addonIds: selectedAddons.map((a) => a.id),
-      addonNames: selectedAddons.map((a) => a.name),
-      addonTotal,
-      quantity,
-      notes,
-    })
-
-    toast.success(`${item.name} added to cart`)
-    onClose()
+    addToCart.mutate(
+      {
+        restaurantId: restaurant.id,
+        restaurantName: restaurant.name,
+        menuItemId: item.id,
+        menuItemName: item.name,
+        menuItemImageUrl: item.imageUrl ?? undefined,
+        basePrice: Number(item.basePrice),
+        quantity,
+        selectedVariant: selectedVariant
+          ? {
+              id: selectedVariant.id,
+              name: selectedVariant.name,
+              priceAdjustment: selectedVariant.priceAdjustment,
+            }
+          : undefined,
+        selectedAddons: selectedAddons.map((a) => ({ id: a.id, name: a.name, price: a.price })),
+        notes: notes || undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success(`${item.name} added to cart`)
+          onClose()
+        },
+        onError: () => toast.error('Failed to add item to cart'),
+      },
+    )
   }
 
   return (
@@ -230,11 +239,13 @@ export function MenuItemModal({ item, restaurant, open, onClose }: MenuItemModal
                 onClick={handleAddToCart}
                 variant="brand"
                 className="flex-1"
-                disabled={!item.isAvailable}
+                disabled={!item.isAvailable || addToCart.isPending}
               >
-                {item.isAvailable
-                  ? `Add to cart · $${totalPrice.toFixed(2)}`
-                  : 'Currently unavailable'}
+                {addToCart.isPending
+                  ? 'Adding…'
+                  : item.isAvailable
+                    ? `Add to cart · $${totalPrice.toFixed(2)}`
+                    : 'Currently unavailable'}
               </Button>
             </div>
           </div>

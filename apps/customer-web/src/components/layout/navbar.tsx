@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation'
 
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useAuth } from '@/hooks/use-auth'
-import { useCartStore } from '@/stores/cart.store'
+import { useCart } from '@/hooks/use-cart-query'
 
 import { UserMenu } from './user-menu'
 
@@ -20,7 +20,8 @@ const NAV_LINKS = [
 export function Navbar() {
   const { user, isAuthenticated } = useAuth()
   const pathname = usePathname()
-  const totalItems = useCartStore((s) => s.totalItems())
+  const { data: cart } = useCart()
+  const totalItems = cart?.items.reduce((sum, i) => sum + i.quantity, 0) ?? 0
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
