@@ -5,6 +5,8 @@ const SERVICE_ROUTES: { prefix: string; url: string }[] = [
   { prefix: '/search', url: process.env.SEARCH_SERVICE_URL ?? 'http://127.0.0.1:3007' },
   { prefix: '/uploads', url: process.env.MEDIA_SERVICE_URL ?? 'http://127.0.0.1:3010' },
   { prefix: '/restaurants', url: process.env.RESTAURANT_SERVICE_URL ?? 'http://127.0.0.1:3002' },
+  { prefix: '/cart', url: process.env.ORDER_SERVICE_URL ?? 'http://127.0.0.1:3003' },
+  { prefix: '/orders', url: process.env.ORDER_SERVICE_URL ?? 'http://127.0.0.1:3003' },
 ]
 const DEFAULT_URL = process.env.API_URL ?? 'http://127.0.0.1:3001'
 
