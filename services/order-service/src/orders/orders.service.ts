@@ -139,6 +139,18 @@ export class OrdersService {
     })
   }
 
+  /**
+   * Find a past order owned by the given customer. Throws ForbiddenException
+   * if the order belongs to another user — used by the reorder flow.
+   */
+  public async findByIdForCustomer(orderId: string, customerId: string): Promise<OrderRead> {
+    const order = await this.findById(orderId)
+    if (order.customerId !== customerId) {
+      throw new NotFoundException(`Order ${orderId} not found`)
+    }
+    return order
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────────────────
 
   private async loadOrFail(orderId: string): Promise<OrderAggregate> {

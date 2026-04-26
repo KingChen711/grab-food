@@ -120,6 +120,26 @@ export class CartController {
     return this.cartService.removePromoCode(user.sub)
   }
 
+  // ─── Reorder ──────────────────────────────────────────────────────────────
+
+  @Post('from-order/:orderId')
+  @ApiOperation({
+    summary: 'Replace cart with items from a past order (reorder)',
+    description:
+      'Replaces the current cart contents with the items from the given order. ' +
+      'The order must belong to the current user. Variants and addons are not ' +
+      'preserved — only menuItem + quantity + notes — so customizations must be ' +
+      're-applied on the menu page if needed.',
+  })
+  @ApiOkResponse({ type: CartResponse })
+  public async reorder(
+    @CurrentUser() user: JwtPayload,
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+  ): Promise<CartResponse> {
+    const order = await this.ordersService.findByIdForCustomer(orderId, user.sub)
+    return this.cartService.replaceFromOrder(user.sub, order)
+  }
+
   // ─── Checkout ─────────────────────────────────────────────────────────────
 
   @Post('checkout')

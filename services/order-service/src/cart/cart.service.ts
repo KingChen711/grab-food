@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import type { Redis } from 'ioredis'
 
 import type { CreateOrderDto } from '../orders/dto/create-order.dto'
+import type { OrderRead } from '../orders/projections/entities/order-read.entity'
 import { REDIS_CLIENT } from './cart.constants'
 import type {
   AddItemToCartDto,
@@ -158,6 +159,39 @@ export class CartService {
   public async removePromoCode(userId: string): Promise<CartResponse> {
     const cart = await this.loadOrFail(userId)
     cart.appliedPromotionCode = undefined
+    return this.recalcAndSave(userId, cart)
+  }
+
+  /**
+   * Replace the current cart with the items from a past order. Used by the
+   * "reorder" flow on the orders page. Variants and addons are not preserved
+   * because the saved order only stores the total unit price — when the user
+   * customized variants/addons, they'll need to re-pick on the menu.
+   */
+  public async replaceFromOrder(userId: string, order: OrderRead): Promise<CartResponse> {
+    const cart: StoredCart = {
+      id: userId,
+      userId,
+      restaurantId: order.restaurantId,
+      restaurantName: order.restaurantName,
+      items: order.items.map((item) => ({
+        cartItemId: randomUUID(),
+        _matchKey: `${item.menuItemId}:none`,
+        menuItemId: item.menuItemId,
+        menuItemName: item.menuItemName,
+        quantity: item.quantity,
+        selectedAddons: [],
+        notes: item.notes,
+        unitPrice: Number(item.unitPrice),
+        totalPrice: Number(item.unitPrice) * item.quantity,
+      })),
+      subtotal: 0,
+      deliveryFee: 0,
+      tax: 0,
+      discount: 0,
+      total: 0,
+      updatedAt: new Date().toISOString(),
+    }
     return this.recalcAndSave(userId, cart)
   }
 

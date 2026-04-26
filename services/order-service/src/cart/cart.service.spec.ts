@@ -228,6 +228,43 @@ describe('CartService', () => {
     expect(redisMock.setex).toHaveBeenCalledWith(`cart:${USER_ID}`, expectedTtl, expect.any(String))
   })
 
+  // ── replaceFromOrder (reorder) ────────────────────────────────────────────
+
+  describe('replaceFromOrder', () => {
+    it('replaces the current cart with items from a past order', async () => {
+      // Seed a different cart at a different restaurant
+      await service.addItem(USER_ID, baseItem)
+
+      const pastOrder = {
+        id: 'order-1',
+        customerId: USER_ID,
+        restaurantId: RESTAURANT_B,
+        restaurantName: 'Burger Barn',
+        items: [
+          {
+            id: 'item-1',
+            orderId: 'order-1',
+            menuItemId: MENU_ITEM_ID_2,
+            menuItemName: 'Cheeseburger',
+            unitPrice: 12,
+            quantity: 2,
+            notes: 'No pickles',
+          },
+        ],
+      } as never
+
+      const cart = await service.replaceFromOrder(USER_ID, pastOrder)
+
+      expect(cart.restaurantId).toBe(RESTAURANT_B)
+      expect(cart.items).toHaveLength(1)
+      expect(cart.items[0]?.menuItemId).toBe(MENU_ITEM_ID_2)
+      expect(cart.items[0]?.quantity).toBe(2)
+      expect(cart.items[0]?.unitPrice).toBe(12)
+      expect(cart.items[0]?.notes).toBe('No pickles')
+      expect(cart.subtotal).toBe(24)
+    })
+  })
+
   // ── buildOrderDto (checkout) ──────────────────────────────────────────────
 
   describe('buildOrderDto', () => {
