@@ -9,7 +9,7 @@ import { StoredEvent } from './schemas/stored-event.schema'
 // ─── Mongoose query-chain mock: .find().sort().lean().exec() ─────────────────────
 
 function chain<T>(result: T) {
-  const c = {
+  const c: { sort: jest.Mock; lean: jest.Mock; exec: jest.Mock } = {
     sort: jest.fn(() => c),
     lean: jest.fn(() => c),
     exec: jest.fn(() => Promise.resolve(result)),

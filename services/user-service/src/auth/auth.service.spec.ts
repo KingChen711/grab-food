@@ -315,12 +315,8 @@ describe('AuthService', () => {
         revokedAt: null,
         expiresAt: new Date(Date.now() + 86400000),
         user: mockUser,
-        get isRevoked() {
-          return this.revokedAt !== null
-        },
-        get isExpired() {
-          return this.expiresAt < new Date()
-        },
+        isRevoked: false,
+        isExpired: false,
       } as unknown as RefreshToken)
 
       const result = await authService.refreshTokens('old-refresh-token')
@@ -346,12 +342,8 @@ describe('AuthService', () => {
         revokedAt: new Date(), // already revoked = reuse
         expiresAt: new Date(Date.now() + 86400000),
         user: mockUser,
-        get isRevoked() {
-          return this.revokedAt !== null
-        },
-        get isExpired() {
-          return this.expiresAt < new Date()
-        },
+        isRevoked: true,
+        isExpired: false,
       } as unknown as RefreshToken)
 
       const qb = refreshTokenRepo.createQueryBuilder()
@@ -368,12 +360,8 @@ describe('AuthService', () => {
         revokedAt: null,
         expiresAt: new Date(Date.now() - 1000), // expired
         user: mockUser,
-        get isRevoked() {
-          return this.revokedAt !== null
-        },
-        get isExpired() {
-          return this.expiresAt < new Date()
-        },
+        isRevoked: false,
+        isExpired: true,
       } as unknown as RefreshToken)
 
       await expect(authService.refreshTokens('expired-token')).rejects.toThrow(

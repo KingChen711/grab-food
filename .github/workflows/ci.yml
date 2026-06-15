@@ -76,6 +76,7 @@ jobs:
         with:
           path: |
             node_modules
+            apps/*/node_modules
             packages/*/node_modules
             services/*/node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -100,6 +101,7 @@ jobs:
         with:
           path: |
             node_modules
+            apps/*/node_modules
             packages/*/node_modules
             services/*/node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -133,6 +135,7 @@ jobs:
         with:
           path: |
             node_modules
+            apps/*/node_modules
             packages/*/node_modules
             services/*/node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -170,6 +173,7 @@ jobs:
         with:
           path: |
             node_modules
+            apps/*/node_modules
             packages/*/node_modules
             services/*/node_modules
           key: modules-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}

@@ -112,6 +112,7 @@ Compensation is **fire-and-forget** — no reply expected. You just refund.
   pnpm --filter @grab/payment-service test
   ```
   (Husky + lint-staged also run on commit. If a hook fails, fix the cause — don't bypass it.)
+- **If you changed any `package.json` (added/removed a dependency), run `pnpm install` and commit the updated `pnpm-lock.yaml` in the _same_ commit.** CI runs `pnpm install --frozen-lockfile`, which fails with `ERR_PNPM_OUTDATED_LOCKFILE` if the lockfile doesn't match. (To refresh the lockfile without installing: `pnpm install --lockfile-only`.)
 - **Tests live next to the code** as `*.spec.ts`. Copy the mocking style from the tests already in `services/order-service/src/orders/orders.service.spec.ts` and `services/restaurant-service/src/restaurants/restaurants.service.spec.ts`.
 - **No floats for money. No `any` if you can avoid it. `public`/`private` on every class member** (the linter enforces accessibility modifiers).
 

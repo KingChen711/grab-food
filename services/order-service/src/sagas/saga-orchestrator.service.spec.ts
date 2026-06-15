@@ -394,7 +394,7 @@ describe('SagaOrchestratorService', () => {
         sagaId: SAGA_ID,
         stepName: SAGA_STEP_NAMES.RESERVE_INVENTORY,
         success: true,
-        data: { reservationId: 'res-1' },
+        data: { inventoryReservationId: 'res-1' },
       })
       expect(rabbitMQMock.publish).toHaveBeenCalledWith(
         SAGA_QUEUES.COMMANDS.PROCESS_PAYMENT,
