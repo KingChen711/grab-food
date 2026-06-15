@@ -166,7 +166,7 @@ Compensation is **fire-and-forget** — no reply expected. You just refund.
   }))
   ```
   For `database.config.ts`, use `process.env.PAYMENT_SERVICE_DB ?? 'grab_payments'`.
-- `src/app.controller.ts` — a `/health` route using Terminus (copy restaurant-service's).
+- `src/app.controller.ts` — a `/health` route using Terminus. **Start with an _empty_ check: `this.health.check([])`.** Do **not** copy restaurant-service's `() => this.db.pingCheck('database')` yet — there's no TypeORM `DataSource` until Task 2, so a DB ping makes `/health` report `down` ("Connection provider not found"). Grow the check as each dependency comes online.
 
 **Verify:**
 
@@ -195,6 +195,7 @@ curl http://localhost:3005/health                 # → { status: "ok" ... }
 - `src/database/database.module.ts` — copy `restaurant-service/src/database/database.module.ts`, list all 7 entities, keep `synchronize: false, migrationsRun: true, migrations: [__dirname + '/migrations/*.{ts,js}']`.
 - `src/database/data-source.ts` — copy user-service's (used by the `db:migrate` CLI).
 - `src/database/migrations/<timestamp>-InitialSchema.ts` — write the `up()` (CREATE TABLE …) and `down()` (DROP TABLE …). You can hand-write it, or scaffold by temporarily setting `synchronize: true`, booting, dumping the SQL, then writing the migration and turning synchronize back off. **Add useful indexes:** `payments(order_id)`, `payments(idempotency_key)` unique, `wallet_transactions(wallet_id)`, `payouts(recipient_id, period_start)`.
+- `src/app.controller.ts` — now that a `DataSource` exists, **add the DB ping back to `/health`**: inject `TypeOrmHealthIndicator` and add `() => this.db.pingCheck('database')` to the `this.health.check([...])` array.
 
 **Verify:** boot the service; check tables exist:
 

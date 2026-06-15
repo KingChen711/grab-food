@@ -6,12 +6,17 @@ import { TerminusModule } from '@nestjs/terminus'
 
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { databaseConfig } from './config/database.config'
+import { rabbitmqConfig } from './config/rabbitmq.config'
+import { redisConfig } from './config/redis.config'
+import { stripeConfig } from './config/stripe.config'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'],
+      load: [stripeConfig, redisConfig, rabbitmqConfig, databaseConfig],
     }),
     TerminusModule,
   ],
