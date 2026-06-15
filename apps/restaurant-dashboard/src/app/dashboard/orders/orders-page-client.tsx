@@ -11,7 +11,6 @@ import {
   useNewOrderChime,
   writeChimePreference,
 } from '@/hooks/use-new-order-chime'
-import { useMyRestaurant } from '@/hooks/use-restaurant'
 import {
   useCancelOrder,
   useConfirmOrder,
@@ -19,9 +18,8 @@ import {
   useRestaurantOrders,
   useStartPreparing,
 } from '@/hooks/use-orders'
+import { useMyRestaurant } from '@/hooks/use-restaurant'
 import type { Order, OrderStatus } from '@/lib/api/orders.api'
-
-const ACTIVE_STATUSES: OrderStatus[] = ['CREATED', 'PENDING', 'CONFIRMED', 'PREPARING', 'READY']
 
 const HISTORY_STATUSES: OrderStatus[] = [
   'PICKED_UP',

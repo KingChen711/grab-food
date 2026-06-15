@@ -24,11 +24,11 @@ export interface RefundPaymentCommand extends SagaCommand {
  * Compensation: refunds the charge via payment-service.
  */
 export class ProcessPaymentStep {
-  static readonly NAME = SAGA_STEP_NAMES.PROCESS_PAYMENT
-  static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.PROCESS_PAYMENT
-  static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.REFUND_PAYMENT
+  public static readonly NAME = SAGA_STEP_NAMES.PROCESS_PAYMENT
+  public static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.PROCESS_PAYMENT
+  public static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.REFUND_PAYMENT
 
-  static buildCommand(ctx: SagaContext): ProcessPaymentCommand {
+  public static buildCommand(ctx: SagaContext): ProcessPaymentCommand {
     return {
       sagaId: ctx.sagaId,
       stepName: this.NAME,
@@ -40,7 +40,7 @@ export class ProcessPaymentStep {
     }
   }
 
-  static buildCompensationCommand(ctx: SagaContext): RefundPaymentCommand | null {
+  public static buildCompensationCommand(ctx: SagaContext): RefundPaymentCommand | null {
     if (!ctx.paymentIntentId) return null
     return {
       sagaId: ctx.sagaId,

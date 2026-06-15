@@ -259,6 +259,12 @@ describe('Auth & Users (e2e)', () => {
     })
 
     it('should succeed login with new password', async () => {
+      // resetPassword above called blacklistAllForUser, which records a revoke
+      // timestamp at 1-second granularity. A token issued in that same second is
+      // treated as revoked (iat <= revokeTimestamp), so wait past the second
+      // boundary to guarantee the fresh token's iat is strictly greater.
+      await new Promise((resolve) => setTimeout(resolve, 1100))
+
       const res = await request(app.getHttpServer())
         .post('/auth/login/email')
         .send({ email: testUser.email, password: newPassword })

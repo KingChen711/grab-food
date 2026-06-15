@@ -23,11 +23,11 @@ export interface UnassignDriverCommand extends SagaCommand {
  * Compensation: releases the driver so they can accept other orders.
  */
 export class AssignDriverStep {
-  static readonly NAME = SAGA_STEP_NAMES.ASSIGN_DRIVER
-  static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.ASSIGN_DRIVER
-  static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.UNASSIGN_DRIVER
+  public static readonly NAME = SAGA_STEP_NAMES.ASSIGN_DRIVER
+  public static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.ASSIGN_DRIVER
+  public static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.UNASSIGN_DRIVER
 
-  static buildCommand(ctx: SagaContext): AssignDriverCommand {
+  public static buildCommand(ctx: SagaContext): AssignDriverCommand {
     return {
       sagaId: ctx.sagaId,
       stepName: this.NAME,
@@ -44,7 +44,7 @@ export class AssignDriverStep {
     }
   }
 
-  static buildCompensationCommand(ctx: SagaContext): UnassignDriverCommand | null {
+  public static buildCompensationCommand(ctx: SagaContext): UnassignDriverCommand | null {
     if (!ctx.driverId) return null
     return {
       sagaId: ctx.sagaId,

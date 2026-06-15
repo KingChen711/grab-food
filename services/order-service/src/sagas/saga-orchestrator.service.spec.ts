@@ -323,6 +323,123 @@ describe('SagaOrchestratorService', () => {
     })
   })
 
+  // ── End-to-end happy path ────────────────────────────────────────────────
+
+  describe('end-to-end happy path (5 steps)', () => {
+    it('walks through validate → reserve → payment → confirm → assign sequentially', async () => {
+      // Track which step the orchestrator believes the saga is on. Each
+      // findOneAndUpdate (transition) bumps this; each findOne (read) returns
+      // the doc reflecting the current step.
+      let currentStep: string = SAGA_STEP_NAMES.VALIDATE_RESTAURANT
+      const completedSteps: string[] = []
+
+      sagaModelMock['create'].mockResolvedValue({ sagaId: SAGA_ID })
+
+      // Mongoose findOne always reflects the current state
+      sagaModelMock['findOne'].mockImplementation(() => ({
+        lean: () => ({
+          exec: jest.fn().mockResolvedValue(makeSagaDoc({ currentStep, completedSteps })),
+        }),
+      }))
+
+      // The orchestrator passes flat update objects (no $set wrapping) for
+      // `executeStep` (which sets currentStep) and uses `updateOne` for
+      // pushing completed steps. We track currentStep here so subsequent
+      // findOne calls return a saga doc that reflects the active step.
+      sagaModelMock['findOneAndUpdate'].mockImplementation(
+        (_filter: unknown, update: Record<string, unknown>) => {
+          if (typeof update.currentStep === 'string') currentStep = update.currentStep
+          return {
+            lean: () => ({
+              exec: jest.fn().mockResolvedValue(makeSagaDoc({ currentStep, completedSteps })),
+            }),
+          }
+        },
+      )
+
+      // updateOne is called by onStepSuccess to record completed steps.
+      sagaModelMock['updateOne'].mockImplementation(
+        (_filter: unknown, update: Record<string, unknown>) => {
+          const updatedSteps = update.completedSteps as string[] | undefined
+          if (Array.isArray(updatedSteps)) {
+            completedSteps.length = 0
+            completedSteps.push(...updatedSteps)
+          }
+          return Promise.resolve({})
+        },
+      )
+
+      // Step 1: kick off saga — should publish validate-restaurant command
+      await service.startSaga(mockOrderCreatedEvent)
+      expect(rabbitMQMock.publish).toHaveBeenCalledWith(
+        SAGA_QUEUES.COMMANDS.VALIDATE_RESTAURANT,
+        expect.objectContaining({ orderId: ORDER_ID }),
+      )
+
+      // Step 2: reply success for validate → orchestrator publishes reserve-inventory
+      rabbitMQMock.publish.mockClear()
+      await service.handleReply({
+        sagaId: SAGA_ID,
+        stepName: SAGA_STEP_NAMES.VALIDATE_RESTAURANT,
+        success: true,
+      })
+      expect(rabbitMQMock.publish).toHaveBeenCalledWith(
+        SAGA_QUEUES.COMMANDS.RESERVE_INVENTORY,
+        expect.objectContaining({ orderId: ORDER_ID }),
+      )
+
+      // Step 3: reply success for reserve → orchestrator publishes process-payment
+      rabbitMQMock.publish.mockClear()
+      await service.handleReply({
+        sagaId: SAGA_ID,
+        stepName: SAGA_STEP_NAMES.RESERVE_INVENTORY,
+        success: true,
+        data: { reservationId: 'res-1' },
+      })
+      expect(rabbitMQMock.publish).toHaveBeenCalledWith(
+        SAGA_QUEUES.COMMANDS.PROCESS_PAYMENT,
+        expect.objectContaining({ orderId: ORDER_ID }),
+      )
+
+      // Step 4: reply success for payment → orchestrator runs confirm-order
+      // (internal — no RabbitMQ publish for confirm itself), then publishes
+      // assign-driver.
+      rabbitMQMock.publish.mockClear()
+      await service.handleReply({
+        sagaId: SAGA_ID,
+        stepName: SAGA_STEP_NAMES.PROCESS_PAYMENT,
+        success: true,
+        data: { paymentIntentId: 'pi_test' },
+      })
+      expect(ordersServiceMock.confirmOrder).toHaveBeenCalledWith(
+        ORDER_ID,
+        expect.objectContaining({ estimatedPrepTimeMinutes: expect.any(Number) }),
+      )
+      expect(rabbitMQMock.publish).toHaveBeenCalledWith(
+        SAGA_QUEUES.COMMANDS.ASSIGN_DRIVER,
+        expect.objectContaining({ orderId: ORDER_ID }),
+      )
+
+      // Step 5: reply success for assign-driver → saga completes (no further publishes)
+      rabbitMQMock.publish.mockClear()
+      await service.handleReply({
+        sagaId: SAGA_ID,
+        stepName: SAGA_STEP_NAMES.ASSIGN_DRIVER,
+        success: true,
+        data: { driverId: 'driver-1' },
+      })
+      // No further saga commands published
+      const stepCommandTopics = Object.values(SAGA_QUEUES.COMMANDS)
+      const publishedTopics = rabbitMQMock.publish.mock.calls.map((c) => c[0])
+      for (const topic of publishedTopics) {
+        expect(stepCommandTopics).not.toContain(topic)
+      }
+
+      // Order should never be cancelled on the happy path
+      expect(ordersServiceMock.cancel).not.toHaveBeenCalled()
+    })
+  })
+
   // ── confirm-order internal step ───────────────────────────────────────────
 
   describe('confirm-order internal step', () => {

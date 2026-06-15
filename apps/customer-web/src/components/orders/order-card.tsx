@@ -1,6 +1,6 @@
 'use client'
 
-import { OrderStatusBadge, formatCurrency } from '@grab/ui'
+import { formatCurrency, OrderStatusBadge } from '@grab/ui'
 import Link from 'next/link'
 
 import type { Order } from '@/lib/api/orders.api'

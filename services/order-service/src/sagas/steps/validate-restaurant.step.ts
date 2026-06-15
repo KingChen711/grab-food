@@ -21,11 +21,11 @@ export interface NotifyRestaurantCancelledCommand extends SagaCommand {
  * (so it can update any dashboards / metrics).
  */
 export class ValidateRestaurantStep {
-  static readonly NAME = SAGA_STEP_NAMES.VALIDATE_RESTAURANT
-  static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.VALIDATE_RESTAURANT
-  static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.NOTIFY_RESTAURANT_CANCELLED
+  public static readonly NAME = SAGA_STEP_NAMES.VALIDATE_RESTAURANT
+  public static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.VALIDATE_RESTAURANT
+  public static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.NOTIFY_RESTAURANT_CANCELLED
 
-  static buildCommand(ctx: SagaContext): ValidateRestaurantCommand {
+  public static buildCommand(ctx: SagaContext): ValidateRestaurantCommand {
     return {
       sagaId: ctx.sagaId,
       stepName: this.NAME,
@@ -35,7 +35,7 @@ export class ValidateRestaurantStep {
     }
   }
 
-  static buildCompensationCommand(ctx: SagaContext): NotifyRestaurantCancelledCommand {
+  public static buildCompensationCommand(ctx: SagaContext): NotifyRestaurantCancelledCommand {
     return {
       sagaId: ctx.sagaId,
       stepName: this.NAME,

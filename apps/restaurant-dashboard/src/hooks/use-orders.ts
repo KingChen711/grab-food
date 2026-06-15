@@ -32,14 +32,6 @@ export function useOrder(id: string | undefined) {
   })
 }
 
-function makeStatusMutation<TArgs>(
-  fn: (args: TArgs) => Promise<void>,
-  invalidate: (qc: ReturnType<typeof useQueryClient>) => void,
-) {
-  // factory used inside hooks below — keeps mutation hooks short
-  return { fn, invalidate }
-}
-
 export function useConfirmOrder(restaurantId: string | undefined) {
   const qc = useQueryClient()
   return useMutation({

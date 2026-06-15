@@ -6,11 +6,12 @@
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
-    "start": "node dist/main",
+    "start": "node dist/services/order-service/src/main",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist"
   },

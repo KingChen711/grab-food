@@ -1,5 +1,5 @@
 import { Client } from '@elastic/elasticsearch'
-import type { SortCombinations } from '@elastic/elasticsearch/lib/api/types'
+import type { IndicesIndexSettings, SortCombinations } from '@elastic/elasticsearch/lib/api/types'
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 
 import type { AutocompleteDto } from './dto/autocomplete.dto'
@@ -295,7 +295,7 @@ export class SearchService implements OnModuleInit, OnModuleDestroy {
    *
    * Note: changing this requires reindexing existing documents.
    */
-  private buildAnalysisSettings() {
+  private buildAnalysisSettings(): IndicesIndexSettings {
     return {
       analysis: {
         filter: {

@@ -259,7 +259,7 @@ Transport: TCP (NestJS microservice), RabbitMQ
 - `user_devices` — user_id, device_token, platform, last_active
 - `refresh_tokens` — user_id, token_hash, expires_at, revoked
 - `oauth_accounts` — user_id, provider, provider_id
-- `user_favorites` — user_id, restaurant_id, dish_id _(deferred to Phase 2 — depends on restaurant entities)_
+- `user_favorites` — user*id, restaurant_id, dish_id *(deferred to Phase 2 — depends on restaurant entities)\_
 
 **Events Produced:**
 

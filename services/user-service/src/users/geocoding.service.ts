@@ -9,6 +9,15 @@ export interface Coordinates {
 const FALLBACK_COORDS: Coordinates = { lat: 10.776889, lng: 106.700806 }
 const MAPBOX_GEOCODE_BASE = 'https://api.mapbox.com/search/geocode/v6'
 
+interface MapboxFeature {
+  geometry: { coordinates: [number, number] }
+  properties?: { full_address?: string; name?: string }
+}
+
+interface MapboxGeocodeResponse {
+  features?: MapboxFeature[]
+}
+
 @Injectable()
 export class GeocodingService {
   private readonly logger = new Logger(GeocodingService.name)
@@ -40,7 +49,7 @@ export class GeocodingService {
         return FALLBACK_COORDS
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as MapboxGeocodeResponse
       const feature = data.features?.[0]
 
       if (!feature) {
@@ -77,7 +86,7 @@ export class GeocodingService {
         return ''
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as MapboxGeocodeResponse
       const feature = data.features?.[0]
 
       if (!feature) {

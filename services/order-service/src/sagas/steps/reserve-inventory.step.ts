@@ -21,11 +21,11 @@ export interface ReleaseInventoryCommand extends SagaCommand {
  * Compensation: releases the reservation so stock is restored.
  */
 export class ReserveInventoryStep {
-  static readonly NAME = SAGA_STEP_NAMES.RESERVE_INVENTORY
-  static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.RESERVE_INVENTORY
-  static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.RELEASE_INVENTORY
+  public static readonly NAME = SAGA_STEP_NAMES.RESERVE_INVENTORY
+  public static readonly COMMAND_QUEUE = SAGA_QUEUES.COMMANDS.RESERVE_INVENTORY
+  public static readonly COMPENSATION_QUEUE = SAGA_QUEUES.COMMANDS.RELEASE_INVENTORY
 
-  static buildCommand(ctx: SagaContext): ReserveInventoryCommand {
+  public static buildCommand(ctx: SagaContext): ReserveInventoryCommand {
     return {
       sagaId: ctx.sagaId,
       stepName: this.NAME,
@@ -35,7 +35,7 @@ export class ReserveInventoryStep {
     }
   }
 
-  static buildCompensationCommand(ctx: SagaContext): ReleaseInventoryCommand | null {
+  public static buildCompensationCommand(ctx: SagaContext): ReleaseInventoryCommand | null {
     if (!ctx.inventoryReservationId) return null
     return {
       sagaId: ctx.sagaId,

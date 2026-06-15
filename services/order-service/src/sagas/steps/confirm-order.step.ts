@@ -16,9 +16,9 @@ import { SAGA_STEP_NAMES } from '../saga.constants'
  * the order aggregate directly.
  */
 export class ConfirmOrderStep {
-  static readonly NAME = SAGA_STEP_NAMES.CONFIRM_ORDER
+  public static readonly NAME = SAGA_STEP_NAMES.CONFIRM_ORDER
 
-  static async execute(ctx: SagaContext, ordersService: OrdersService): Promise<void> {
+  public static async execute(ctx: SagaContext, ordersService: OrdersService): Promise<void> {
     const prepTime = ctx.estimatedPrepTimeMinutes ?? 20
     await ordersService.confirmOrder(ctx.orderId, { estimatedPrepTimeMinutes: prepTime })
   }
