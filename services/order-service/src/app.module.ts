@@ -24,7 +24,7 @@ import { SagaModule } from './sagas/saga.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'],
       load: [databaseConfig, mongoConfig, redisConfig, rabbitmqConfig, jwtConfig],
     }),
     EventEmitterModule.forRoot(),

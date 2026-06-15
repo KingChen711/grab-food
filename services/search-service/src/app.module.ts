@@ -1,4 +1,4 @@
-﻿import { HttpExceptionFilter, TransformInterceptor } from '@grab/nestjs-common'
+import { HttpExceptionFilter, TransformInterceptor } from '@grab/nestjs-common'
 import { ClassSerializerInterceptor, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
@@ -15,7 +15,7 @@ import { SearchModule } from './search/search.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'],
       load: [elasticsearchConfig],
     }),
     TerminusModule,

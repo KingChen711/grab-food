@@ -22,7 +22,7 @@ import { UsersModule } from './users/users.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'],
       load: [databaseConfig, jwtConfig, redisConfig, googleConfig, mapboxConfig],
     }),
     EventEmitterModule.forRoot({ wildcard: false, delimiter: '.', maxListeners: 20 }),

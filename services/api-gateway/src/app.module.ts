@@ -10,7 +10,7 @@ import { AppService } from './app.service'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'],
     }),
     ThrottlerModule.forRoot([
       { name: 'short', ttl: 1000, limit: 20 },

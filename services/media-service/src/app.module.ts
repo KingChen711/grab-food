@@ -15,7 +15,7 @@ import { UploadModule } from './upload/upload.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'],
       load: [databaseConfig, minioConfig],
     }),
     TypeOrmModule.forRootAsync({

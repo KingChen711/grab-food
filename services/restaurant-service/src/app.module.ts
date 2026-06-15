@@ -28,7 +28,7 @@ import { ReviewsModule } from './reviews/reviews.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'],
       load: [databaseConfig, jwtConfig, redisConfig],
     }),
     EventEmitterModule.forRoot({ wildcard: false, delimiter: '.', maxListeners: 20 }),
