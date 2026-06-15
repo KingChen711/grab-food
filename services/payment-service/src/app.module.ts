@@ -10,6 +10,7 @@ import { databaseConfig } from './config/database.config'
 import { rabbitmqConfig } from './config/rabbitmq.config'
 import { redisConfig } from './config/redis.config'
 import { stripeConfig } from './config/stripe.config'
+import { DatabaseModule } from './database/database.module'
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { stripeConfig } from './config/stripe.config'
       load: [stripeConfig, redisConfig, rabbitmqConfig, databaseConfig],
     }),
     TerminusModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [
