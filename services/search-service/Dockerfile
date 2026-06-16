@@ -19,6 +19,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/types/package.json ./packages/types/
 COPY packages/validators/package.json ./packages/validators/
+COPY packages/nestjs-common/package.json ./packages/nestjs-common/
 COPY services/search-service/package.json ./services/search-service/
 
 RUN pnpm install --frozen-lockfile
@@ -31,15 +32,21 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/config/node_modules ./packages/config/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/validators/node_modules ./packages/validators/node_modules
+COPY --from=deps /app/packages/nestjs-common/node_modules ./packages/nestjs-common/node_modules
 COPY --from=deps /app/services/search-service/node_modules ./services/search-service/node_modules
+
+# Copy root workspace manifests (needed for pnpm --filter / deploy)
+COPY --from=deps /app/package.json /app/pnpm-workspace.yaml /app/pnpm-lock.yaml /app/.npmrc ./
 
 COPY packages/config ./packages/config
 COPY packages/types ./packages/types
 COPY packages/validators ./packages/validators
+COPY packages/nestjs-common ./packages/nestjs-common
 COPY services/search-service ./services/search-service
 
 RUN pnpm --filter @grab/types build 2>/dev/null || true
 RUN pnpm --filter @grab/validators build 2>/dev/null || true
+RUN pnpm --filter @grab/nestjs-common build 2>/dev/null || true
 RUN pnpm --filter @grab/search-service build
 
 # ─── Stage 4: Deploy (prune to production deps only) ─────────────────────────
