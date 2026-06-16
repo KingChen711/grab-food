@@ -10,13 +10,16 @@ export type PaymentStatus =
   | 'REFUNDED'
   | 'PARTIALLY_REFUNDED'
 
-export type PaymentMethod =
-  | 'card'
-  | 'wallet'
-  | 'cash_on_delivery'
-  | 'bank_transfer'
-  | 'momo'
-  | 'zalopay'
+export const PAYMENT_METHODS = [
+  'card',
+  'wallet',
+  'cash_on_delivery',
+  'bank_transfer',
+  'momo',
+  'zalopay',
+] as const
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
 export type PayoutStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
