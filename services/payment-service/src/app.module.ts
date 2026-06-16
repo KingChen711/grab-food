@@ -11,6 +11,7 @@ import { rabbitmqConfig } from './config/rabbitmq.config'
 import { redisConfig } from './config/redis.config'
 import { stripeConfig } from './config/stripe.config'
 import { DatabaseModule } from './database/database.module'
+import { RedisModule } from './redis/redis.module'
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { DatabaseModule } from './database/database.module'
     }),
     TerminusModule,
     DatabaseModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [
