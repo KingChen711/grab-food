@@ -84,7 +84,7 @@ Compensation is **fire-and-forget** — no reply expected. You just refund.
 
 ### 0.4 Gotchas that will bite you (learned from earlier phases)
 
-1. **`tsconfig.json` `rootDir` must be `"../../"`, not `"./src"`.** Because the service imports `@grab/types` (a path-mapped source file _outside_ `src/`), a `rootDir: "./src"` makes `nest build` fail with **TS6059**. Copy `services/restaurant-service/tsconfig.json` exactly, and set `"start": "node dist/services/payment-service/src/main"` in `package.json` (the build output nests under `dist/services/...`). This already broke order-service once.
+1. `**tsconfig.json` `rootDir` must be `"../../"`, not `"./src"`.** Because the service imports `@grab/types` (a path-mapped source file *outside* `src/`), a `rootDir: "./src"` makes `nest build` fail with **TS6059\*\*. Copy `services/restaurant-service/tsconfig.json` exactly, and set `"start": "node dist/services/payment-service/src/main"` in `package.json` (the build output nests under `dist/services/...`). This already broke order-service once.
 2. **Stripe webhooks need the _raw_ request body.** Signature verification fails if Nest parses the JSON first. You must enable `rawBody` and use it only on the webhook route. See Task 6.
 3. **VND is a zero-decimal currency in Stripe.** Send `amount` as the plain integer (220000 = 220,000 VND). Do **not** multiply by 100. (For USD you would ×100.)
 4. **Money is stored as integers** everywhere (VND). Never use floats for money.
@@ -98,7 +98,7 @@ Compensation is **fire-and-forget** — no reply expected. You just refund.
   STRIPE_SECRET_KEY=sk_test_...your key...
   ```
   (Leave `STRIPE_WEBHOOK_SECRET` for Task 6 — you get it from the Stripe CLI.)
-- Install the **Stripe CLI** (for local webhook testing in Task 6): https://stripe.com/docs/stripe-cli
+- Install the **Stripe CLI** (for local webhook testing in Task 6): [https://stripe.com/docs/stripe-cli](https://stripe.com/docs/stripe-cli)
 
 ### 0.6 Conventions you must follow every commit
 
@@ -159,7 +159,7 @@ Compensation is **fire-and-forget** — no reply expected. You just refund.
 - `tsconfig.json`, `tsconfig.build.json`, `tsconfig.spec.json`, `nest-cli.json`, `eslint.config.js` — copy from `restaurant-service`. **Set `rootDir: "../../"`** (see Gotcha #1).
 - `src/main.ts` — copy `restaurant-service/src/main.ts`; change ports to HTTP `3005` / TCP `5005`, Swagger title to "Grab payment-service".
 - `src/app.module.ts` — start minimal: `ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env.local', '.env', '../../.env.local', '../../.env'], load: [stripeConfig, redisConfig, rabbitmqConfig, databaseConfig] })`, `TerminusModule`, `EventEmitterModule.forRoot(...)`. Keep the global `HttpExceptionFilter` + `TransformInterceptor` from `@grab/nestjs-common`. **Do not** add `JwtAuthGuard` globally yet — add it when you add protected routes (Task 5), or add it now and mark webhook routes `@Public()`.
-- `src/config/stripe.config.ts`, `redis.config.ts`, `rabbitmq.config.ts`, `database.config.ts` — each is a `registerAs('stripe'|'redis'|'rabbitmq'|'database', () => ({...}))`. Copy `restaurant-service/src/config/*` and add:
+- `src/config/stripe.config.ts`, `redis.config.ts`, `rabbitmq.config.ts`, `database.config.ts` — each is a `registerAs('stripe'|'redis'|'rabbitmq'|'database', () => ({...}))`. Copy `restaurant-service/src/config/`\* and add:
   ```ts
   export const stripeConfig = registerAs('stripe', () => ({
     secretKey: process.env.STRIPE_SECRET_KEY ?? '',
@@ -297,7 +297,7 @@ docker exec -it grab-postgres psql -U grab_user -d grab_payments -c "\dt"
 
 **Concepts:** Payments confirm **asynchronously**. Stripe POSTs an event to your webhook URL. You must **verify the signature** using the raw request body and `STRIPE_WEBHOOK_SECRET`, then react to `payment_intent.succeeded` / `payment_intent.payment_failed`.
 
-**Gotcha #2 — raw body.** In `main.ts`, create the app with `{ rawBody: true }` (or add `bodyParser` raw for the webhook path). The webhook controller reads `req.rawBody` and passes it to `StripeService.constructWebhookEvent`. The webhook route must be **`@Public()`** (no JWT) and **excluded from the global `TransformInterceptor`** if that wraps responses.
+**Gotcha #2 — raw body.** In `main.ts`, create the app with `{ rawBody: true }` (or add `bodyParser` raw for the webhook path). The webhook controller reads `req.rawBody` and passes it to `StripeService.constructWebhookEvent`. The webhook route must be `**@Public()`** (no JWT) and **excluded from the global `TransformInterceptor`\*\* if that wraps responses.
 
 **Files:**
 
